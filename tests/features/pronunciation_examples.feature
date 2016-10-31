@@ -13,3 +13,8 @@ Feature: Get frequency list for language XXX
         de
         dat
         """
+
+    Scenario: Bad language
+        Given I have the language "unknown"
+        When I ask for its frequency list
+        Then I see the error message "Language 'unknown' is not known"

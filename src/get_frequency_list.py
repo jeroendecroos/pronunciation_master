@@ -1,4 +1,7 @@
+""" get_frequency_master gets the most frequent words for a language
+"""
 import argparse
+import StringIO
 import requests
 
 import resources
@@ -34,26 +37,38 @@ def _map_language_to_hermitdave_code(language):
     for the moment not doing anything smart
     Returns code for hermitdave
     """
+    language = language.lower()
     codes = {'dutch':'nl'}
+    if language not in codes:
+        raise ValueError("Language '{}' is not known".format(language))
     return codes[language]
 
 def _get_hermitdave_page(language_code):
+    """ get the page from hermitdave's github
+    Arguments are the language_code to hermitdave_page
+    Returns: stream
+    """
     page_name = '{}_50k.txt'.format(language_code)
     page_path = '/'.join([
         resources.hermit_dave_github,
         language_code,
         page_name])
-    stream = requests.get(page_path).text
+    text = requests.get(page_path).text
+    stream = StringIO.StringIO(text)
     return stream
 
 def _get_frequency_list_from_file(file_pointer):
+    """Take a pointer to a file and get the frequency list from it
+    """
     with open(file_pointer) as instream:
         freq_list = _get_frequency_list_from_filestream(instream)
     return freq_list
 
 def _get_frequency_list_from_filestream(instream):
+    """Take a file stream and get the frequency list from it
+    """
     freq_list = []
-    for line in instream.split('\n'):
+    for line in instream:
         if not line:
             break
         word, freq = line.split()

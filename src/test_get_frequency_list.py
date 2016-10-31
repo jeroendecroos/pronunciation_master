@@ -6,9 +6,16 @@ import tests.testlib.testcase as testcase
 import get_frequency_list
 
 class MapLanguageToHermitDaveCodeTest(testcase.BaseTestCase):
+    def setUp(self):
+        self.fun = get_frequency_list._map_language_to_hermitdave_code
+
     def test_dutch(self):
-        fun = get_frequency_list._map_language_to_hermitdave_code
-        self.assertEqual(fun('dutch'), 'nl')
+        self.assertEqual(self.fun('dutch'), 'nl')
+
+    def test_unknown_language(self):
+        with self.assertRaises(ValueError):
+            self.fun('unknownlanguages')
+
 
 class GetFrequencyListFromFile(testcase.BaseTestCase):
     def test_word_freq_list(self):
@@ -39,8 +46,8 @@ class GetFrequencyListFromFile(testcase.BaseTestCase):
 class GetHermitdavePage(testcase.BaseTestCase):
     def test_dutch_first_line(self):
         page = get_frequency_list._get_hermitdave_page('nl')
-        line = page.split('\n')[0]
-        self.assertEqual(line, 'ik 8106228')
+        line = page.readline()
+        self.assertEqual(line, 'ik 8106228\n')
 
 if __name__ == '__main__':
     unittest.main()
