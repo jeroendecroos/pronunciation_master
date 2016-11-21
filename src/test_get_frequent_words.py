@@ -3,11 +3,11 @@ import tempfile
 import os
 
 import tests.testlib.testcase as testcase
-import get_frequency_list
+import get_frequent_words
 
 class MapLanguageToHermitDaveCodeTest(testcase.BaseTestCase):
     def setUp(self):
-        self.fun = get_frequency_list._map_language_to_hermitdave_code
+        self.fun = get_frequent_words._map_language_to_hermitdave_code
 
     def test_dutch(self):
         self.assertEqual(self.fun('dutch'), 'nl')
@@ -32,7 +32,7 @@ class GetFrequencyListFromFile(testcase.BaseTestCase):
             ('word10', 10),
                 ]
         _, temp_filepath = tempfile.mkstemp()
-        fun = get_frequency_list._get_frequency_list_from_file
+        fun = get_frequent_words._get_frequency_list_from_file
         words = [word for word, freq in freq_list]
         try:
             with open(temp_filepath, 'w') as temp_stream:
@@ -45,7 +45,7 @@ class GetFrequencyListFromFile(testcase.BaseTestCase):
 
 class GetHermitdavePage(testcase.BaseTestCase):
     def test_dutch_first_line(self):
-        page = get_frequency_list._get_hermitdave_page('nl')
+        page = get_frequent_words._get_hermitdave_page('nl')
         line = page.readline()
         self.assertEqual(line, 'ik 8106228\n')
 
