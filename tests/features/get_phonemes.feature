@@ -4,17 +4,17 @@ Feature: Get frequency list for language XXX
 
     Scenario: specific language
         Given I have the language "Dutch"
-        When I ask for its frequency list
+        When I ask for its phonemes
         Then I see the following at the top:
         """
-        ik
-        je
-        het
-        de
-        dat
+        m
+        k
+        i
+        j
+        p
         """
 
     Scenario: Bad language
         Given I have the language "unknown"
-        When I ask for its frequency list
+        When I ask for its phonemes
         Then I see the error message "Language 'unknown' is not known"

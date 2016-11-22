@@ -10,8 +10,15 @@ def i_have_the_language(step, language):
 
 @step
 def ask_for_its_frequency_list(step):
+    ask_for_list_for_language('get_frequent_words.py')
+
+@step
+def ask_for_its_phonemes(step):
+    ask_for_list_for_for_language('get_phonemes.py')
+
+def ask_for_list_for_language(program):
     args = ['--language', world.language]
-    path = os.path.join(testlib.project_vars.SRC_DIR, 'get_frequent_words.py')
+    path = os.path.join(testlib.project_vars.SRC_DIR, program)
     stdout, stderr, returncode = testlib.testrun.run_program(path, args)
     world.frequency_list = stdout.split('\n')[:-1]  ##remove last empty
     world.stderr = stderr
