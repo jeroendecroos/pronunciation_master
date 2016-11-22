@@ -1,24 +1,29 @@
-import os
-import urllib2
-import pickle
-from bs4 import BeautifulSoup
+""" get_frequency_master gets the most frequent words for a language
+"""
+import argparse
+import StringIO
+import requests
 
-import codecs
+import resources
 
-#page_url = "https://nl.wikipedia.org/wiki/Klankinventaris_van_het_Nederlands"
-page_url = "https://nl.wikipedia.org/wiki/IPA-notatie_voor_het_Nederlands_en_het_Afrikaans"
+def get_phonemes(language):
+    return []
 
-with codecs.open('phon_list_wikiNL2.txt','wb','utf8') as outstream:
-    print 'extracting %s' % page_url
-    page = urllib2.urlopen(page_url).read()
-    soup = BeautifulSoup(page, "html.parser")
-   
-    ### finding all spans.
-    spans = soup.findAll('span')
+def _parse_arguments():
+    """ parse the arguments from the commandline
 
-    for span in spans:
-        ### check if contains sup + right href
-        sup = span.findAll('sup')
-        if len(sup) == 1:
-              letter = span.contents[0]
-              outstream.write(letter[1:-1]+'\n')
+    Arguments:
+        None
+    Returns:
+        Namespace
+    """
+    parser = argparse.ArgumentParser(description='Get the phonemes from a language')
+    parser.add_argument('--language', dest='language', required=True,
+        help='the language we want the list for')
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    args = _parse_arguments()
+    phonemes = get_phonemes(args.language)
+    print('\n'.join(phonemes[:5]))
