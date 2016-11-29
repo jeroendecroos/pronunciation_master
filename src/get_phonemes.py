@@ -30,7 +30,10 @@ class PhonemesCollector(object):
         return set(row['Phoneme'] for row in self.all_data)
 
 def get_phonemes(language):
-    return []
+    phoibe_data = resources.phoible_database
+    phonemes_collector = PhonemesCollector(language)
+    phonemes_collector.parse_source(phoibe_data)
+    return phonemes_collector.get_all_phonemes()
 
 def _parse_arguments():
     """ parse the arguments from the commandline
