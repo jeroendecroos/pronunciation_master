@@ -52,4 +52,5 @@ def _parse_arguments():
 if __name__ == '__main__':
     args = _parse_arguments()
     phonemes = get_phonemes(args.language)
-    print('\n'.join(phonemes[:5]))
+    for phoneme in phonemes:
+        print(phoneme)
