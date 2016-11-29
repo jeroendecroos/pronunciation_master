@@ -5,6 +5,8 @@ import StringIO
 import requests
 
 import resources
+import language_codes
+
 
 def get_frequency_list(language):
     """ returns a list of the most frequent words of a language
@@ -27,21 +29,10 @@ def _get_frequency_list_from_hermitdave(language):
     Returns
         List        most frequent words in frequency-order
     """
-    hermitdave_language_code = _map_language_to_hermitdave_code(language)
+    hermitdave_language_code = language_codes._map_language_to_hermitdave_code(language)
     file_pointer = _get_hermitdave_page(hermitdave_language_code)
     return _get_frequency_list_from_filestream(file_pointer)
 
-
-def _map_language_to_hermitdave_code(language):
-    """ hermitdave probably uses ISO 639:1
-    for the moment not doing anything smart
-    Returns code for hermitdave
-    """
-    language = language.lower()
-    codes = {'dutch':'nl'}
-    if language not in codes:
-        raise ValueError("Language '{}' is not known".format(language))
-    return codes[language]
 
 def _get_hermitdave_page(language_code):
     """ get the page from hermitdave's github
