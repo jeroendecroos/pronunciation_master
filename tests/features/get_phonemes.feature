@@ -5,7 +5,7 @@ Feature: Get frequency list for language XXX
     Scenario: specific language
         Given I have the language "Dutch"
         When I ask for its phonemes
-        Then I see the following at the top:
+        Then I see the following in the list:
         """
         m
         k
