@@ -29,7 +29,7 @@ def _get_frequency_list_from_hermitdave(language):
     Returns
         List        most frequent words in frequency-order
     """
-    hermitdave_language_code = language_codes._map_language_to_hermitdave_code(language)
+    hermitdave_language_code = language_codes.HermitDave.map(language)
     file_pointer = _get_hermitdave_page(hermitdave_language_code)
     return _get_frequency_list_from_filestream(file_pointer)
 
