@@ -18,5 +18,6 @@ class LanguageCodes(object):
 class HermitDave(LanguageCodes):
     codes = {'dutch': 'nl'}
 
-
+class Phoibe(LanguageCodes):
+    codes = {'dutch': 'nld'}
 

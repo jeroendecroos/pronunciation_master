@@ -3,6 +3,7 @@
 import argparse
 import csv
 
+import language_codes
 import resources
 
 class PhonemesCollector(object):
@@ -24,7 +25,7 @@ class PhonemesCollector(object):
         self.all_data.append(row)
 
     def _get_language_code(self):
-        return 'nld'
+        return language_codes.Phoibe.map(self.language)
 
     def get_all_phonemes(self):
         return set(row['Phoneme'] for row in self.all_data)

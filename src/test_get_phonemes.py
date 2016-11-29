@@ -20,7 +20,7 @@ class PhonemesTest(testcase.BaseTestCase):
         os.remove(self.temporary_source)
 
     def test_get_all_phonemes(self):
-        phonemes = get_phonemes.PhonemesCollector('nld')
+        phonemes = get_phonemes.PhonemesCollector('dutch')
         phoneme_list = ['p1', 'p2']
         create_phoneme_data_source_phiobe(self.temporary_source, 'nld', phoneme_list)
         phonemes.parse_source(self.temporary_source)
