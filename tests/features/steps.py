@@ -1,5 +1,6 @@
 from lettuce import *
 import os
+import itertools
 
 import testlib.project_vars
 import testlib.testrun
@@ -12,6 +13,7 @@ def i_have_the_language(step, language):
 def i_have_the_word(step, word):
     world.word = word
 
+
 @step
 def ask_for_its_frequency_list(step):
     ask_for_list_for_language('get_frequent_words.py')
@@ -19,11 +21,21 @@ def ask_for_its_frequency_list(step):
 @step
 def ask_for_its_phonemes(step):
     ask_for_list_for_language('get_phonemes.py')
+@step
+def ask_for_its_pronunciations(step):
+    command_line_arguments = {
+        '--language': world.language,
+        '--word': world.word}
+    ask_for_list('get_pronunciations.py', command_line_arguments)
 
 def ask_for_list_for_language(program):
-    args = ['--language', world.language]
+    command_line_arguments = {'--language': world.language}
+    ask_for_list(program, command_line_arguments)
+
+def ask_for_list(program, command_line_arguments):
+    arguments = itertools.chain.from_iterable(command_line_arguments.items())
     path = os.path.join(testlib.project_vars.SRC_DIR, program)
-    stdout, stderr, returncode = testlib.testrun.run_program(path, args)
+    stdout, stderr, returncode = testlib.testrun.run_program(path, command_line_arguments)
     world.stdout = stdout.split('\n')[:-1]  ##remove last empty
     world.stderr = stderr
 
