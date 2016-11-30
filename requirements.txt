@@ -27,3 +27,4 @@ mccabe==0.5.2
 pylint==1.6.4
 requests==2.11.1
 wrapt==1.10.8
+wiktionaryparser
