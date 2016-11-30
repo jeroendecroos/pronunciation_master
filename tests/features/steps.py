@@ -8,6 +8,10 @@ import testlib.testrun
 def i_have_the_language(step, language):
     world.language = language
 
+@step('Given I have the word "(.*)"')
+def i_have_the_word(step, word):
+    world.word = word
+
 @step
 def ask_for_its_frequency_list(step):
     ask_for_list_for_language('get_frequent_words.py')
