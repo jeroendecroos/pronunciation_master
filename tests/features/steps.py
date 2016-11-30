@@ -33,9 +33,9 @@ def ask_for_list_for_language(program):
     ask_for_list(program, command_line_arguments)
 
 def ask_for_list(program, command_line_arguments):
-    arguments = itertools.chain.from_iterable(command_line_arguments.items())
+    arguments = list(itertools.chain.from_iterable(command_line_arguments.items()))
     path = os.path.join(testlib.project_vars.SRC_DIR, program)
-    stdout, stderr, returncode = testlib.testrun.run_program(path, command_line_arguments)
+    stdout, stderr, returncode = testlib.testrun.run_program(path, arguments)
     world.stdout = stdout.split('\n')[:-1]  ##remove last empty
     world.stderr = stderr
 
