@@ -45,19 +45,19 @@ class ListPronunciationsTest(testcase.BaseTestCase):
             []
         ),
         ("one IPA",
-            ['IPA: /tbat/'],
+            ['IPA: /ba/'],
             ['ba']
         ),
         ("two IPA",
-            ['IPA: /tba1st/', 'IPA: /tba2t/'],
+            ['IPA: /ba1/', 'IPA: /ba2/'],
             ['ba1', 'ba2']
         ),
         ("two equal IPA",
-            ['IPA: /tba1st/', 'IPA: /tba1t/'],
+            ['IPA: /ba1/', 'IPA: /ba1/'],
             ['ba1']
         ),
         ("one IPA, one garbage",
-            ['IPA: /tba1st/', 'Rhymes: /tba2t/'],
+            ['IPA: /ba1/', 'Rhymes: /ba2/'],
             ['ba1']
         ),
         )

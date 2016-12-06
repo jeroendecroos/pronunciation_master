@@ -1,5 +1,6 @@
 """ get_pronunciations gets the pronunciations for a word in a language
 """
+import re
 import argparse
 import itertools
 
@@ -24,7 +25,12 @@ def filter_pronunciations(wiktionary_entry):
     return pronunciations
 
 def list_pronunciations(pronunciation_entries):
-    pass
+    pronunciations = set()
+    for entry in pronunciation_entries:
+        m = re.search('IPA: */(.*)/', entry)
+        if m:
+            pronunciations.add(m.group(1))
+    return pronunciations
 
 def _parse_arguments():
     """ parse the arguments from the commandline
@@ -34,11 +40,11 @@ def _parse_arguments():
     Returns:
         Namespace
 """
-    parser = argparse.ArgumentParser(description='Get the phonemes from a language') 
+    parser = argparse.ArgumentParser(description='Get the phonemes from a language')
     parser.add_argument('--language', dest='language', required=True,
-        help='the language we want the pronuncations for')
+                        help='the language we want the pronuncations for')
     parser.add_argument('--word', dest='word', required=True,
-        help='the word we want the pronunciations for')
+                        help='the word we want the pronunciations for')
     return parser.parse_args()
 
 
