@@ -6,11 +6,15 @@ import itertools
 
 from wiktionaryparser import WiktionaryParser
 
+import language_codes
 
 def get_pronunciations(language, word):
-    wiktionary_entry = get_wiktionary_entry(language, word)
+    language_code = language_codes.Wiktionary.map(language)
+    wiktionary_entry = get_wiktionary_entry(language_code, word)
     pronunciation_entries = filter_pronunciations(wiktionary_entry)
     pronunciations = list_pronunciations(pronunciation_entries)
+    if not pronunciations:
+        raise RuntimeError("No pronunciations found for word '{}' in language '{}'".format(word, language))
     return pronunciations
 
 def get_wiktionary_entry(language, word):

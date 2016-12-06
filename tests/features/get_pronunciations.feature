@@ -13,5 +13,13 @@ Feature: Get frequency list for language XXX
 
     Scenario: Bad language
         Given I have the language "unknown"
-        When I ask for its phonemes
+        Given I have the word "nu"
+        When I ask for its pronunciations
         Then I see the error message "Language 'unknown' is not known"
+
+    Scenario: no pronunciatons
+        Given I have the language "Dutch"
+        Given I have the word "blablaword"
+        When I ask for its pronunciations
+        Then I see the error message "No pronunciations found for word 'blablaword' in language 'Dutch'"
+

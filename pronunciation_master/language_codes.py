@@ -21,3 +21,5 @@ class HermitDave(LanguageCodes):
 class Phoibe(LanguageCodes):
     codes = {'dutch': 'nld'}
 
+class Wiktionary(LanguageCodes):
+    codes = {'dutch': 'dutch'}
