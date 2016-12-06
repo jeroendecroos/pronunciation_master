@@ -30,11 +30,40 @@ class FilterPronunciationsTest(testcase.BaseTestCase):
             [{'pronunciations': ['burp1']},
                 {'pronunciations': ['burp2']}],
             ['burp1', 'burp2']
-        ),
+            ),
         )
     def test_floor(self, name, entry, expected):
         fun = get_pronunciations.filter_pronunciations
-        self.assertEqual(list(fun(entry)), expected)
+        self.assertItemsEqual(list(fun(entry)), expected)
+
+
+class ListPronunciationsTest(testcase.BaseTestCase):
+
+    @params(
+        ("no entry",
+            [],
+            []
+        ),
+        ("one IPA",
+            ['IPA: /tbat/'],
+            ['ba']
+        ),
+        ("two IPA",
+            ['IPA: /tba1st/', 'IPA: /tba2t/'],
+            ['ba1', 'ba2']
+        ),
+        ("two equal IPA",
+            ['IPA: /tba1st/', 'IPA: /tba1t/'],
+            ['ba1']
+        ),
+        ("one IPA, one garbage",
+            ['IPA: /tba1st/', 'Rhymes: /tba2t/'],
+            ['ba1']
+        ),
+        )
+    def test_floor(self, name, entry, expected):
+        fun = get_pronunciations.list_pronunciations
+        self.assertItemsEqual(list(fun(entry)), expected)
 
 if __name__ == '__main__':
     unittest.main()
