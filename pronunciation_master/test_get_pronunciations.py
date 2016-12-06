@@ -2,6 +2,7 @@ import os
 import unittest
 import tempfile
 
+import mock
 from nose2.tools import params
 
 import tests.testlib.testcase as testcase
@@ -34,7 +35,7 @@ class FilterPronunciationsTest(testcase.BaseTestCase):
         )
     def test_floor(self, name, entry, expected):
         fun = get_pronunciations.filter_pronunciations
-        self.assertItemsEqual(list(fun(entry)), expected)
+        self.assertItemsEqual(fun(entry), expected)
 
 
 class ListPronunciationsTest(testcase.BaseTestCase):
@@ -63,7 +64,29 @@ class ListPronunciationsTest(testcase.BaseTestCase):
         )
     def test_floor(self, name, entry, expected):
         fun = get_pronunciations.list_pronunciations
-        self.assertItemsEqual(list(fun(entry)), expected)
+        self.assertItemsEqual(fun(entry), expected)
+
+class GetPronunciationsTest(testcase.BaseTestCase):
+    def setUp(self):
+        """ We need to fake get_wiktionary_entry because this makes an external call.
+        """
+        self.get_wiktionary_entry = mock.Mock()
+        get_pronunciations.get_wiktionary_entry = self.get_wiktionary_entry
+        self.fun = get_pronunciations.get_pronunciations
+        self.get_wiktionary_entry.return_value = []
+
+    def test_raise_bad_language(self):
+        with self.assertRaises(ValueError):
+            self.fun('unknown language', 'ba')
+
+    def test_raise_nothing_found(self):
+        with self.assertRaises(RuntimeError):
+            self.fun('dutch', 'ba')
+
+    def test_one_pronoun_on_wiktionary(self):
+        self.get_wiktionary_entry.return_value = [{'pronunciations':['IPA: /ba/']}]
+        ret = self.fun('dutch', 'bad')
+        self.assertItemsEqual(ret, ['ba'])
 
 if __name__ == '__main__':
     unittest.main()
