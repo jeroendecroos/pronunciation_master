@@ -21,6 +21,11 @@ def ask_for_its_frequency_list(step):
 @step
 def ask_for_its_phonemes(step):
     ask_for_list_for_language('get_phonemes.py')
+
+@step
+def ask_for_its_pronunciation_examples(step):
+    ask_for_list_for_language('get_pronunciation_examples.py')
+
 @step
 def ask_for_its_pronunciations(step):
     command_line_arguments = {
