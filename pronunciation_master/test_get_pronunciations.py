@@ -34,7 +34,7 @@ class FilterPronunciationsTest(testcase.BaseTestCase):
         )
     def test_floor(self, name, entry, expected):
         fun = get_pronunciations.filter_pronunciations
-        self.assertEqual(fun(entry), expected)
+        self.assertEqual(list(fun(entry)), expected)
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,11 +1,10 @@
 """ get_pronunciations gets the pronunciations for a word in a language
 """
 import argparse
+import itertools
 
 from wiktionaryparser import WiktionaryParser
 
-import language_codes
-import resources
 
 def get_pronunciations(language, word):
     wiktionary_entry = get_wiktionary_entry(language, word)
@@ -19,7 +18,10 @@ def get_wiktionary_entry(language, word):
     return parser.fetch(word)
 
 def filter_pronunciations(wiktionary_entry):
-    pass
+    key = 'pronunciations'
+    pronunciation_entries = (entry.get(key, []) for entry in wiktionary_entry)
+    pronunciations = itertools.chain.from_iterable(pronunciation_entries)
+    return pronunciations
 
 def list_pronunciations(pronunciation_entries):
     pass
@@ -31,8 +33,8 @@ def _parse_arguments():
         None
     Returns:
         Namespace
-    """
-    parser = argparse.ArgumentParser(description='Get the phonemes from a language')
+"""
+    parser = argparse.ArgumentParser(description='Get the phonemes from a language') 
     parser.add_argument('--language', dest='language', required=True,
         help='the language we want the pronuncations for')
     parser.add_argument('--word', dest='word', required=True,
