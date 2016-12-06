@@ -50,6 +50,6 @@ def _parse_arguments():
 
 if __name__ == '__main__':
     args = _parse_arguments()
-    pronunciations = get_pronunciations(args.language, args.world)
+    pronunciations = get_pronunciations(args.language, args.word)
     for pronunciation in pronunciations:
         print(pronunciation)
