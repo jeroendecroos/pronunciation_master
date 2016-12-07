@@ -6,14 +6,29 @@ import get_phonemes
 import get_pronunciations
 import get_frequent_words
 
+def _all_have_same_length(items):
+    pass
+
+def _get_equal_phonemes(pronunciations):
+    pass
 
 class PronunciationExamples(object):
     def __init__(self, phonemes):
         self._examples = {key: [] for key in phonemes}
 
     def add_pronunciations(self, word, pronunciations):
+        """ adds for each phoneme in the pronunciations this words
+        if there is ambiguaty, the word is not added ( 'ab', 'ac' is only added to the phoneme 'a')
+        for simplicity, 'abc', 'bc' will be completely ignored till better algorithm
+        """
+        if _all_have_same_length(pronunciations):
+            if self._all_valid_phonemes(pronunciations):
+                phonemes = _get_equal_phonemes(pronunciations)
+                (self._examples[phoneme].append(word) for phoneme in phonemes)
+
+    def _all_valid_phonemes(self, pronunciations):
         pass
-    
+
     def __getitem__(self, name):
         return self._examples[name]
 
