@@ -26,6 +26,10 @@ class PronunciationExamplesTest(testcase.BaseTestCase):
         self.assertItemsEqual(examples.values(), [[]])
 
     @params(
+            ('non valid phonemes',
+                ('one', ['g']),
+                {'a':[], 'b':[], 'c':[]}
+            ),
             ('1 pronunciation, 1phoneme',
                 ('one', ['a']),
                 {'a':['one'], 'b':[], 'c':[]}
@@ -33,6 +37,10 @@ class PronunciationExamplesTest(testcase.BaseTestCase):
             ('1 pronunciation, 2phoneme',
                 ('one', ['ab']),
                 {'a':['one'], 'b':['one'], 'c':[]}
+            ),
+            ('2 pronunciation, unequal length',
+                ('one', ['a', 'ab']),
+                {'a':[], 'b':[], 'c':[]}
             ),
             ('2 pronunciation, different phonemes',
                 ('one', ['a', 'b']),
