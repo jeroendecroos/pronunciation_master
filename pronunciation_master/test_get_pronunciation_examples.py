@@ -19,11 +19,11 @@ class PronunciationExamplesTest(testcase.BaseTestCase):
 
     def test_items(self):
         examples = self.test_class(['a'])
-        self.assertItemsEqual(examples.items(), ('a', []))
+        self.assertItemsEqual(examples.items(), [('a', [])])
 
     def test_values(self):
         examples = self.test_class(['a'])
-        self.assertItemsEqual(examples.items(), [[]])
+        self.assertItemsEqual(examples.values(), [[]])
 
     @params(
             ('1 pronunciation, 1phoneme',
@@ -45,7 +45,8 @@ class PronunciationExamplesTest(testcase.BaseTestCase):
     def test_add_once_pronunciations(self, name, entry, expected ):
         examples = self.test_class(available_phonemes)
         examples.add_pronunciations(*entry)
-        self.assertItemsEqual(examples.items(), expected)
+        raise Exception('wrongly implemented')
+        self.assertItemsEqual(examples, expected)
 
 
 
