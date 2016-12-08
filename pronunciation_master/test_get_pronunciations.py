@@ -79,10 +79,6 @@ class GetPronunciationsTest(testcase.BaseTestCase):
         with self.assertRaises(ValueError):
             self.fun('unknown language', 'ba')
 
-    def test_raise_nothing_found(self):
-        with self.assertRaises(RuntimeError):
-            self.fun('dutch', 'ba')
-
     def test_one_pronoun_on_wiktionary(self):
         self.get_wiktionary_entry.return_value = [{'pronunciations':['IPA: /ba/']}]
         ret = self.fun('dutch', 'bad')
