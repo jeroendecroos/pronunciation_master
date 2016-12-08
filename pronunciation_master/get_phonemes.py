@@ -2,6 +2,7 @@
 """
 import argparse
 import csv
+import codecs
 
 import language_codes
 import resources
@@ -15,7 +16,7 @@ class PhonemesCollector(object):
     def parse_source(self, filepath):
         """ Use a source to populate the Phonemes object with data
         currently parsed from a fixed file, could benefit from an SQL like database"""
-        with open(filepath, 'rb') as tsv_file:
+        with codecs.open(filepath, 'r') as tsv_file:
             tsv_reader = csv.DictReader(tsv_file, delimiter='\t')
             for row in tsv_reader:
                 if row['LanguageCode'] == self.language_code:
@@ -28,7 +29,7 @@ class PhonemesCollector(object):
         return language_codes.Phoibe.map(self.language)
 
     def get_all_phonemes(self):
-        return set(row['Phoneme'] for row in self.all_data)
+        return set(row['Phoneme'].decode('utf8') for row in self.all_data)
 
 def get_phonemes(language):
     phoibe_data = resources.phoible_database
