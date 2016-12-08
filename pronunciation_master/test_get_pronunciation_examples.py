@@ -84,10 +84,8 @@ class AllHaveSameLengthTest(testcase.BaseTestCase):
     def test_positive_case(self, _, entry):
         self.assertTrue(self.fun(entry))
 
-    @params(('one empty', ['']),
-            ('one', ['a']),
-            ('two equal', ['a', 'b']),
-            ('three equal', ['a', 'b', 'c']),
+    @params(('two unequal', ['ab', 'b']),
+            ('two equal, one different', ['aa', 'b', 'c']),
             )
     def test_negative_case(self, _, entry):
         self.assertFalse(self.fun(entry))
@@ -98,7 +96,7 @@ class GetEqualPhonemesTest(testcase.BaseTestCase):
 
     @params(
         ('one entry one phoneme', ['a'], ['a']),
-        ('one entry two phonemes', ['ab'], ['ab']),
+        ('one entry two phonemes', ['ab'], ['a', 'b']),
         ('one entry equal phonemes', ['aa'], ['a']),
         ('two entries unequal phonemes', ['a', 'b'], []),
         ('two entries partly equal phonemes', ['ab', 'ab'], ['a', 'b']),
@@ -107,7 +105,7 @@ class GetEqualPhonemesTest(testcase.BaseTestCase):
         ('three entries two equal, other partially different', ['ab', 'ab', 'ad'], ['a']),
             )
     def test_positive_case(self, _, entry, expected):
-        self.assertEqual(self.fun(entry), expected)
+        self.assertItemsEqual(self.fun(entry), expected)
 
 
 if __name__ == '__main__':
