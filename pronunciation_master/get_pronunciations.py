@@ -13,8 +13,6 @@ def get_pronunciations(language, word):
     wiktionary_entry = get_wiktionary_entry(language_code, word)
     pronunciation_entries = filter_pronunciations(wiktionary_entry)
     pronunciations = list_pronunciations(pronunciation_entries)
-    if not pronunciations:
-        raise RuntimeError("No pronunciations found for word '{}' in language '{}'".format(word, language))
     return pronunciations
 
 def get_wiktionary_entry(language, word):
@@ -55,5 +53,7 @@ def _parse_arguments():
 if __name__ == '__main__':
     args = _parse_arguments()
     pronunciations = get_pronunciations(args.language, args.word)
+    if not pronunciations:
+        raise RuntimeError("No pronunciations found for word '{}' in language '{}'".format(word, language))
     for pronunciation in pronunciations:
         print(pronunciation)

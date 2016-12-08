@@ -7,13 +7,14 @@ import get_pronunciations
 import get_frequent_words
 
 def _all_have_same_length(items):
-    return all(len(item)==len(items[0]) for item in items)
+    example = next(iter(items)) # set robust
+    return all(len(item)==len(example) for item in items)
 
 def _get_equal_phonemes(pronunciations):
     """ gets all phonemes that are equal for each pronunciation
     for simplicity, 'abc', 'bca' will be completely ignored till better algorithm
     """
-    example = pronunciations[0]
+    example = next(iter(pronunciations)) #set robust
     equal_phonemes = [phoneme for i, phoneme in enumerate(example) if
                         all(pronunciation[i] == phoneme for pronunciation in pronunciations)
     ]
@@ -53,11 +54,11 @@ class PronunciationExamples(object):
     def values(self):
         return self._examples.values()
 
-def get_pronunciation_examples(language):
+def get_pronunciation_examples(language, max=10):
     phonemes = get_phonemes.get_phonemes(language)
     frequent_words = get_frequent_words.get_frequency_list(language)
     examples = PronunciationExamples(phonemes)
-    for word in frequent_words:
+    for word in frequent_words[:max]:
         pronunciations = get_pronunciations.get_pronunciations(language, word)
         if pronunciations:
             examples.add_pronunciations(word, pronunciations)
@@ -80,5 +81,5 @@ def _parse_arguments():
 if __name__ == '__main__':
     args = _parse_arguments()
     pronunciation_examples = get_pronunciation_examples(args.language)
-    for phoneme, examples in pronunciation_examples:
+    for phoneme, examples in pronunciation_examples.items():
         print('{}: {}'.format(phoneme, examples))
