@@ -15,46 +15,37 @@ def i_have_the_language(step, language):
 def i_have_the_word(step, word):
     world.word = word
 
-
 @step
 def ask_for_its_frequency_list(step):
-    ask_for_list_for_language('get_frequent_words.py')
+    _external_program_runner(
+        'get_frequent_words.py',
+        ['language'],
+        _stdout_list_parser
+        )
 
 @step
 def ask_for_its_phonemes(step):
-    ask_for_list_for_language('get_phonemes.py')
+    _external_program_runner(
+        'get_phonemes.py',
+        ['language'],
+        _stdout_list_parser
+        )
 
 @step
 def ask_for_its_pronunciation_examples(step):
-    ask_for_dict_for_language('get_pronunciation_examples.py')
+    _external_program_runner(
+        'get_pronunciation_examples.py',
+        ['language'],
+        _stdout_dict_parser
+        )
 
 @step
 def ask_for_its_pronunciations(step):
-    command_line_arguments = {
-        '--language': world.language,
-        '--word': world.word}
-    ask_for_list('get_pronunciations.py', command_line_arguments)
-
-def ask_for_list_for_language(program):
-    command_line_arguments = {'--language': world.language}
-    ask_for_list(program, command_line_arguments)
-
-def ask_for_dict_for_language(program):
-    command_line_arguments = {'--language': world.language}
-    ask_for_dict(program, command_line_arguments)
-
-def ask_for_list(program, command_line_arguments):
-    ask_for_something_to_parse(program, command_line_arguments, _stdout_list_parser)
-
-def ask_for_dict(program, command_line_arguments):
-    ask_for_something_to_parse(program, command_line_arguments, _stdout_dict_parser)
-
-def ask_for_something_to_parse(program, command_line_arguments, parser):
-    arguments = list(itertools.chain.from_iterable(command_line_arguments.items()))
-    path = os.path.join(testlib.project_vars.SRC_DIR, program)
-    stdout, stderr, returncode = testlib.testrun.run_program(path, arguments)
-    world.stdout = parser(stdout)  ##remove last empty
-    world.stderr = stderr
+    _external_program_runner(
+        'get_pronunciations.py',
+        ['language', 'word'],
+        _stdout_list_parser
+        )
 
 @step('I see the following at the top')
 def check_list(step):
@@ -73,6 +64,24 @@ def check_dict(step):
     for test_key, test_values in tests.iteritems():
         for value in test_values:
             assert value in world.stdout[test_key]
+
+@step('Then I see the error message "(.*)"')
+def check_error_message(step, error_message):
+    assert error_message in world.stderr
+
+############################
+#
+#  UTILS
+#
+############################
+
+def _external_program_runner(program, arguments, parser):
+    command_line_arguments = {'--{}'.format(argument): getattr(world, argument) for argument in arguments}
+    arguments = list(itertools.chain.from_iterable(command_line_arguments.items()))
+    path = os.path.join(testlib.project_vars.SRC_DIR, program)
+    stdout, stderr, returncode = testlib.testrun.run_program(path, arguments)
+    world.stdout = parser(stdout)  ##remove last empty
+    world.stderr = stderr
 
 def _transform_lettuce_hashes_into_dict(hashes):
     new_dict = collections.defaultdict(list)
@@ -93,8 +102,4 @@ def _stdout_dict_parser(stdout):
             raise Exception("we have a double entry for '{}' in the output".format(phoneme))
         new_dict[phoneme] = pronunciations
     return new_dict
-
-@step('Then I see the error message "(.*)"')
-def check_error_message(step, error_message):
-    assert error_message in world.stderr
 
