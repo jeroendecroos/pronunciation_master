@@ -53,7 +53,7 @@ def check_list(step):
 def check_list(step):
     to_check_list =step.multiline.split('\n')
     for check_value in to_check_list:
-        assert check_value in world.stdout
+        assert check_value.encode('utf8') in world.stdout
 
 @step('Then I see the error message "(.*)"')
 def check_error_message(step, error_message):
