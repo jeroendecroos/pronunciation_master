@@ -82,4 +82,5 @@ if __name__ == '__main__':
     args = _parse_arguments()
     pronunciation_examples = get_pronunciation_examples(args.language)
     for phoneme, examples in pronunciation_examples.items():
-        print('{}: {}'.format(phoneme.encode('utf8'), examples))
+        formatted_examples = ', '.join(examples)
+        print('{}: {}'.format(phoneme.encode('utf8'), formatted_examples.encode('utf8')))
