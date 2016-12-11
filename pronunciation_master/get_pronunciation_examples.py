@@ -1,7 +1,7 @@
 """ get_pronunciation_examples gives the most frequent used words that have a certain phoneme in its pronunciation
 """
-import argparse
 
+import commandline
 import get_phonemes
 import get_pronunciations
 import get_frequent_words
@@ -64,22 +64,9 @@ def get_pronunciation_examples(language, max=10):
             examples.add_pronunciations(word, pronunciations)
     return examples
 
-def _parse_arguments():
-    """ parse the arguments from the commandline
-
-    Arguments:
-        None
-    Returns:
-        Namespace
-    """
-    parser = argparse.ArgumentParser(description='Get the pronunciaton_examples for a language')
-    parser.add_argument('--language', dest='language', required=True,
-        help='the language we want the examples for')
-    return parser.parse_args()
-
 
 if __name__ == '__main__':
-    args = _parse_arguments()
+    args = commandline.LanguageInput.get_arguments('Get the pronunciaton_examples for a language')
     pronunciation_examples = get_pronunciation_examples(args.language)
     for phoneme, examples in pronunciation_examples.items():
         formatted_examples = ', '.join(examples)

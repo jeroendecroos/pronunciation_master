@@ -1,11 +1,11 @@
 """ get_frequency_master gets the most frequent words for a language
 """
-import argparse
 import csv
 import codecs
 
 import language_codes
 import resources
+import commandline
 
 class PhonemesCollector(object):
     """ Hold information about all the phonemes in a language
@@ -49,22 +49,9 @@ def get_phonemes(language):
     phonemes_collector.parse_source(phoibe_data)
     return phonemes_collector.get_all_phonemes()
 
-def _parse_arguments():
-    """ parse the arguments from the commandline
-
-    Arguments:
-        None
-    Returns:
-        Namespace
-    """
-    parser = argparse.ArgumentParser(description='Get the phonemes from a language')
-    parser.add_argument('--language', dest='language', required=True,
-        help='the language we want the list for')
-    return parser.parse_args()
-
 
 if __name__ == '__main__':
-    args = _parse_arguments()
+    args = commandline.LanguageInput.get_arguments('Get the phonemes from a language')
     phonemes = get_phonemes(args.language)
     for phoneme in phonemes:
         print(phoneme.encode('utf8'))

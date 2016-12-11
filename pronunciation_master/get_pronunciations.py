@@ -1,12 +1,12 @@
 """ get_pronunciations gets the pronunciations for a word in a language
 """
 import re
-import argparse
 import itertools
 
 from wiktionaryparser import WiktionaryParser
 
 import language_codes
+import commandline
 
 def get_pronunciations(language, word):
     """ main function of module,
@@ -63,23 +63,8 @@ def list_pronunciations(pronunciation_entries):
             pronunciations.add(pronunciation)
     return pronunciations
 
-def _parse_arguments():
-    """ parse the arguments from the commandline
-
-    Arguments:
-        None
-    Returns:
-        Namespace
-"""
-    parser = argparse.ArgumentParser(description='Get the phonemes from a language')
-    parser.add_argument('--language', dest='language', required=True,
-                        help='the language we want the pronuncations for')
-    parser.add_argument('--word', dest='word', required=True,
-                        help='the word we want the pronunciations for')
-    return parser.parse_args()
-
 def main():
-    args = _parse_arguments()
+    args = commandline.LanguageAndWordInput.get_arguments('Get the phonemes from a language')
     pronunciations = get_pronunciations(args.language, args.word)
     if not pronunciations:
         message = "No pronunciations found for word '{}' in language '{}'"
