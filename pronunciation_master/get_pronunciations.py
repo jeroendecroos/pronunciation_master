@@ -56,10 +56,11 @@ def list_pronunciations(pronunciation_entries):
         set of pronunciations : set(pron1, pron2, ...)
     """
     pronunciations = set()
+    pattern = re.compile('IPA: */(.*?)/')
     for entry in pronunciation_entries:
-        m = re.search('IPA: */(.*)/', entry)
-        if m:
-            pronunciations.add(m.group(1))
+        found_pronunciations = pattern.findall(entry)
+        for pronunciation in found_pronunciations:
+            pronunciations.add(pronunciation)
     return pronunciations
 
 def _parse_arguments():
@@ -82,9 +83,9 @@ def main():
     pronunciations = get_pronunciations(args.language, args.word)
     if not pronunciations:
         message = "No pronunciations found for word '{}' in language '{}'"
-        raise RuntimeError(message.format(word, language))
+        raise RuntimeError(message.format(args.word, args.language))
     for pronunciation in pronunciations:
-        print(pronunciation)
+        print(pronunciation.encode('utf8'))
 
 
 if __name__ == '__main__':

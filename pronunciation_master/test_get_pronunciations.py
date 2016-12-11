@@ -61,6 +61,10 @@ class ListPronunciationsTest(testcase.BaseTestCase):
             ['IPA: /ba1/', 'Rhymes: /ba2/'],
             ['ba1']
         ),
+        ("two IPA in one entry",
+            ['IPA: /ba1/ IPA: /ba2/'],
+            ['ba1', 'ba2']
+        ),
         )
     def test_floor(self, name, entry, expected):
         fun = get_pronunciations.list_pronunciations

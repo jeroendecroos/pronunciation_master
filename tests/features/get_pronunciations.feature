@@ -11,6 +11,16 @@ Feature: Get frequency list for language XXX
         ny
         """
 
+    Scenario: multiple pronunciations
+        Given I have the language "Dutch"
+        Given I have the word "het"
+        When I ask for its pronunciations
+        Then I see the following in the list:
+        """
+        ɦɛt
+        ət
+        """
+
     Scenario: Bad language
         Given I have the language "unknown"
         Given I have the word "nu"
