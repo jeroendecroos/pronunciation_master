@@ -55,4 +55,4 @@ if __name__ == '__main__':
     args = _parse_arguments()
     phonemes = get_phonemes(args.language)
     for phoneme in phonemes:
-        print(phoneme)
+        print(phoneme.encode('utf8'))
