@@ -8,6 +8,9 @@ import language_codes
 import resources
 
 class PhonemesCollector(object):
+    """ Hold information about all the phonemes in a language
+        it is populated by calling the parse_source
+    """
     def __init__(self, language):
         self.language = language
         self.language_code = self._get_language_code()
@@ -29,9 +32,18 @@ class PhonemesCollector(object):
         return language_codes.Phoibe.map(self.language)
 
     def get_all_phonemes(self):
+        """ get a set of all the phonemes for the language of the phonemeCollector
+        """
         return set(row['Phoneme'].decode('utf8') for row in self.all_data)
 
 def get_phonemes(language):
+    """Main entry point for the module
+    will return a set of phonemes for the given language
+    Arguments:
+        language=language for which to get the phonemes
+    Returns:
+        set of phonemes
+    """
     phoibe_data = resources.phoible_database
     phonemes_collector = PhonemesCollector(language)
     phonemes_collector.parse_source(phoibe_data)
