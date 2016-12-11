@@ -5,10 +5,10 @@ Feature: Get pronunciation examples for language XXX
     Scenario: specific language
         Given I have the language "Dutch"
         When I ask for its pronunciation examples
-        Then I see the following in the list:
-        """
-        y: [nu]
-        """
+        Then I see the following in the dict-list:
+            | key | value |
+            | v   | van   |
+
 
     Scenario: Bad language
         Given I have the language "unknown"
