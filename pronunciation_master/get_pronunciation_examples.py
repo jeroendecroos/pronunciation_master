@@ -68,6 +68,4 @@ def get_pronunciation_examples(language, max=10):
 if __name__ == '__main__':
     args = commandline.LanguageInput.get_arguments('Get the pronunciaton_examples for a language')
     pronunciation_examples = get_pronunciation_examples(args.language)
-    for phoneme, examples in pronunciation_examples.items():
-        formatted_examples = ', '.join(examples)
-        print('{}: {}'.format(phoneme.encode('utf8'), formatted_examples.encode('utf8')))
+    commandline.output_dict(pronunciation_examples)

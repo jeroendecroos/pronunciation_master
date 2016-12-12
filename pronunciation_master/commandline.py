@@ -8,7 +8,7 @@ class ArgumentParser(argparse.ArgumentParser):
     """
     def __init__(self, *args, **kwargs):
         super(ArgumentParser, self).__init__(*args, **kwargs)
-        
+
     def add_language(self):
         self.add_argument('--language', dest='language', required=True,
             help='the language we want the pronuncations for')
@@ -39,4 +39,16 @@ class LanguageAndWordInput(CommonArgumentParser):
     def _add_arguments(parser):
         parser.add_language()
         parser.add_word()
+
+
+def output_list(iterable):
+    for item in iterable:
+        print(item.encode('utf8'))
+
+def output_dict(iterable):
+    for key, values in iterable.items():
+        formatted_values = ', '.join(values).encode('utf8')
+        formatted_key = key.encode('utf8')
+        print('{}: {}'.format(formatted_key, formatted_values))
+
 

@@ -69,4 +69,4 @@ def _get_frequency_list_from_filestream(instream):
 if __name__ == '__main__':
     args = commandline.LanguageInput.get_arguments('Get the word frequencies for a language')
     frequency_list = get_frequency_list(args.language)
-    print('\n'.join(frequency_list[:5]))
+    commandline.output_list(frequency_list[:5])

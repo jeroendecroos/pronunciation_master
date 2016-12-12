@@ -69,8 +69,7 @@ def main():
     if not pronunciations:
         message = "No pronunciations found for word '{}' in language '{}'"
         raise RuntimeError(message.format(args.word, args.language))
-    for pronunciation in pronunciations:
-        print(pronunciation.encode('utf8'))
+    commandline.output_list(pronunciations)
 
 
 if __name__ == '__main__':

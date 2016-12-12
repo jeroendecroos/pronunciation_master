@@ -53,5 +53,4 @@ def get_phonemes(language):
 if __name__ == '__main__':
     args = commandline.LanguageInput.get_arguments('Get the phonemes from a language')
     phonemes = get_phonemes(args.language)
-    for phoneme in phonemes:
-        print(phoneme.encode('utf8'))
+    commandline.output_list(phonemes)
