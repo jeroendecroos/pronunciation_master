@@ -6,7 +6,7 @@ import mock
 from nose2.tools import params
 
 import tests.testlib.testcase as testcase
-import get_pronunciations
+import pronunciation_master.get_pronunciations as get_pronunciations
 
 class FilterPronunciationsTest(testcase.BaseTestCase):
 

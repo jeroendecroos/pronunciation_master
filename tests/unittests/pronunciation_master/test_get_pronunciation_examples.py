@@ -2,7 +2,7 @@ import unittest
 from nose2.tools import params
 
 import tests.testlib.testcase as testcase
-import get_pronunciation_examples
+import pronunciation_master.get_pronunciation_examples as get_pronunciation_examples
 
 available_phonemes = ['a','b','c']
 

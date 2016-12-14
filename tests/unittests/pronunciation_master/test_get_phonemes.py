@@ -3,7 +3,7 @@ import unittest
 import tempfile
 
 import tests.testlib.testcase as testcase
-import get_phonemes
+import pronunciation_master.get_phonemes as get_phonemes
 
 def create_phoneme_data_source_phiobe(filepath, language, phonemes):
     with open(filepath, 'wb') as filestream:

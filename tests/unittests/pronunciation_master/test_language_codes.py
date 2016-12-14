@@ -1,6 +1,6 @@
 
 import tests.testlib.testcase as testcase
-import language_codes
+import pronunciation_master.language_codes as language_codes
 
 class LanguageCodeTest(testcase.BaseTestCase):
     def setUp(self):
