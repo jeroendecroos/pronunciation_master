@@ -1,18 +1,27 @@
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup, find_packages
 
 #to use a consistent encoding
 from codecs import open
 import os
+
+def _lint():
+    """Run lint and return an exit code."""
+    project_python_files = [filename for filename in get_project_files()
+                            if filename.endswith(b'.py')]
+    retcode = subprocess.call(
+        ['flake8', '--max-complexity=10'] + project_python_files)
+    if retcode == 0:
+        print_success_message('No style errors')
+    return retcode
+
+
 
 here = os.path.abspath(os.path.dirname(__file__))
 
 with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
-setup(
+setup_dict = dict(
     # general information
     name='pronunciation_master',
     version='0.1.0',
@@ -23,7 +32,7 @@ setup(
 
     # useful information
     url='https://github.com/jeroendecroos/pronunciation_master',
-    author='Jeroen Decroos'
+    author='Jeroen Decroos',
     author_email='jeroen.decroos+github@gmail.com',
     license='GNU General Public License v3 (GPLv3)',
 
@@ -46,3 +55,9 @@ setup(
     entry_points={},
 )
 
+def main():
+    setup(**setup_dict)
+
+
+if __name__ == '__main__':
+    main()

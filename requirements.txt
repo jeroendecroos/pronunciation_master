@@ -30,3 +30,4 @@ wrapt==1.10.8
 wiktionaryparser
 twine
 cov-core
+paver
