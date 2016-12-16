@@ -1,10 +1,9 @@
 # testlib.testcase.py
 import os
 import unittest
-import subprocess
-import sys
 
 import project_vars
+
 
 class BaseTestCase(unittest.TestCase):
     """

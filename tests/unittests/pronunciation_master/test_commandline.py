@@ -1,6 +1,7 @@
 import tests.testlib.testcase as testcase
 import pronunciation_master.commandline as commandline
 
+
 class ArgumentParserTest(testcase.BaseTestCase):
 
     def test_init(self):
@@ -17,10 +18,8 @@ class ArgumentParserTest(testcase.BaseTestCase):
         parser.add_word()
         args = parser.parse_args(['--word', 'd'])
         self.assertEqual(args.word, 'd')
-    
+
     def test_wrong_argument(self):
         parser = commandline.ArgumentParser()
         with self.assertRaises(SystemExit):
             parser.parse_args(['--something', 'd'])
-
-

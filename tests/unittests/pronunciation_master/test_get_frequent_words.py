@@ -32,12 +32,13 @@ class GetFrequencyListFromFile(testcase.BaseTestCase):
         finally:
             os.remove(temp_filepath)
 
+
 class GetHermitdavePage(testcase.BaseTestCase):
     def test_dutch_first_line(self):
         page = get_frequent_words._get_hermitdave_page('nl')
         line = page.readline()
         self.assertEqual(line, 'ik 8106228\n')
 
+
 if __name__ == '__main__':
     unittest.main()
-

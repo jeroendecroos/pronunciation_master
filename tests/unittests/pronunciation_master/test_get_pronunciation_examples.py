@@ -2,16 +2,17 @@ import unittest
 from nose2.tools import params
 
 import tests.testlib.testcase as testcase
-import pronunciation_master.get_pronunciation_examples as get_pronunciation_examples
+from pronunciation_master import get_pronunciation_examples
 
-available_phonemes = ['a','b','c']
+available_phonemes = ['a', 'b', 'c']
+
 
 class PronunciationExamplesTest(testcase.BaseTestCase):
     def setUp(self):
         self.test_class = get_pronunciation_examples.PronunciationExamples
 
     def test__init__(self):
-        examples = self.test_class(['a'])
+        self.test_class(['a'])
 
     def test_keys(self):
         examples = self.test_class(['a'])
@@ -26,31 +27,26 @@ class PronunciationExamplesTest(testcase.BaseTestCase):
         self.assertItemsEqual(examples.values(), [[]])
 
     @params(
-            ('non valid phonemes',
-                ('one', ['g']),
-                {'a':[], 'b':[], 'c':[]}
-            ),
-            ('1 pronunciation, 1phoneme',
-                ('one', ['a']),
-                {'a':['one'], 'b':[], 'c':[]}
-            ),
-            ('1 pronunciation, 2phoneme',
-                ('one', ['ab']),
-                {'a':['one'], 'b':['one'], 'c':[]}
-            ),
-            ('2 pronunciation, unequal length',
-                ('one', ['a', 'ab']),
-                {'a':[], 'b':[], 'c':[]}
-            ),
-            ('2 pronunciation, different phonemes',
-                ('one', ['a', 'b']),
-                {'a':[], 'b':[], 'c':[]}
-        ),
-            ('2 pronunciation, 1 common phoneme',
-                ('one', ['ac', 'bc']),
-                {'a':[], 'b':[], 'c':['one']}
-            ))
-    def test_add_once_pronunciations(self, _, entry, expected ):
+        ('non valid phonemes',
+            ('one', ['g']),
+            {'a': [], 'b': [], 'c': []}),
+        ('1 pronunciation, 1phoneme',
+            ('one', ['a']),
+            {'a': ['one'], 'b': [], 'c': []}),
+        ('1 pronunciation, 2phoneme',
+            ('one', ['ab']),
+            {'a': ['one'], 'b': ['one'], 'c': []}),
+        ('2 pronunciation, unequal length',
+            ('one', ['a', 'ab']),
+            {'a': [], 'b': [], 'c': []}),
+        ('2 pronunciation, different phonemes',
+            ('one', ['a', 'b']),
+            {'a': [], 'b': [], 'c': []}),
+        ('2 pronunciation, 1 common phoneme',
+            ('one', ['ac', 'bc']),
+            {'a': [], 'b': [], 'c': ['one']})
+        )
+    def test_add_once_pronunciations(self, _, entry, expected):
         examples = self.test_class(available_phonemes)
         examples.add_pronunciations(*entry)
         self.assertDictEqual(dict(examples), expected)
