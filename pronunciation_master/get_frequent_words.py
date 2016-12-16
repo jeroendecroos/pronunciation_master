@@ -18,6 +18,7 @@ def get_frequency_list(language):
     """
     return _get_frequency_list_from_hermitdave(language)
 
+
 def _get_frequency_list_from_hermitdave(language):
     """ returns a list of the most frequent words of a language
     the frequency lists are processede starting from the list hermitdave made
@@ -48,12 +49,14 @@ def _get_hermitdave_page(language_code):
     stream = StringIO.StringIO(text)
     return stream
 
+
 def _get_frequency_list_from_file(file_pointer):
     """Take a pointer to a file and get the frequency list from it
     """
     with open(file_pointer) as instream:
         freq_list = _get_frequency_list_from_filestream(instream)
     return freq_list
+
 
 def _get_frequency_list_from_filestream(instream):
     """Take a file stream and get the frequency list from it
@@ -66,7 +69,9 @@ def _get_frequency_list_from_filestream(instream):
         freq_list.append(word)
     return freq_list
 
+
 if __name__ == '__main__':
-    args = commandline.LanguageInput.get_arguments('Get the word frequencies for a language')
+    description = 'Get the word frequencies for a language'
+    args = commandline.LanguageInput.get_arguments(description)
     frequency_list = get_frequency_list(args.language)
     commandline.output_list(frequency_list[:5])

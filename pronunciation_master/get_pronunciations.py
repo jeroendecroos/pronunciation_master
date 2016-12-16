@@ -8,6 +8,7 @@ from wiktionaryparser import WiktionaryParser
 import language_codes
 import commandline
 
+
 def get_pronunciations(language, word):
     """ main function of module,
     gets the pronunciations for a 'word' in a 'language'
@@ -24,6 +25,7 @@ def get_pronunciations(language, word):
     pronunciations = list_pronunciations(pronunciation_entries)
     return pronunciations
 
+
 def get_wiktionary_entry(language, word):
     """Interface to the requestion something from wiktionary.
     Arguments:
@@ -36,6 +38,7 @@ def get_wiktionary_entry(language, word):
     parser.set_default_language(language)
     return parser.fetch(word)
 
+
 def filter_pronunciations(wiktionary_entry):
     """ filters out only the pronunciation entries of a wikipedia page
     Arguments:
@@ -47,6 +50,7 @@ def filter_pronunciations(wiktionary_entry):
     pronunciation_entries = (entry.get(key, []) for entry in wiktionary_entry)
     pronunciations = itertools.chain.from_iterable(pronunciation_entries)
     return pronunciations
+
 
 def list_pronunciations(pronunciation_entries):
     """ Parses all the pronunciations from the entries
@@ -63,8 +67,10 @@ def list_pronunciations(pronunciation_entries):
             pronunciations.add(pronunciation)
     return pronunciations
 
+
 def main():
-    args = commandline.LanguageAndWordInput.get_arguments('Get the phonemes from a language')
+    description = 'Get the phonemes from a language'
+    args = commandline.LanguageAndWordInput.get_arguments(description)
     pronunciations = get_pronunciations(args.language, args.word)
     if not pronunciations:
         message = "No pronunciations found for word '{}' in language '{}'"

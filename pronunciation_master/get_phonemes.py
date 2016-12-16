@@ -7,6 +7,7 @@ import language_codes
 import resources
 import commandline
 
+
 class PhonemesCollector(object):
     """ Hold information about all the phonemes in a language
         it is populated by calling the parse_source
@@ -18,7 +19,9 @@ class PhonemesCollector(object):
 
     def parse_source(self, filepath):
         """ Use a source to populate the Phonemes object with data
-        currently parsed from a fixed file, could benefit from an SQL like database"""
+        currently parsed from a fixed file,
+        could benefit from an SQL like database
+        """
         with codecs.open(filepath, 'r') as tsv_file:
             tsv_reader = csv.DictReader(tsv_file, delimiter='\t')
             for row in tsv_reader:
@@ -32,9 +35,10 @@ class PhonemesCollector(object):
         return language_codes.Phoibe.map(self.language)
 
     def get_all_phonemes(self):
-        """ get a set of all the phonemes for the language of the phonemeCollector
+        """ get a set of all phonemes for the language of the phonemeCollector
         """
         return set(row['Phoneme'].decode('utf8') for row in self.all_data)
+
 
 def get_phonemes(language):
     """Main entry point for the module
@@ -51,6 +55,7 @@ def get_phonemes(language):
 
 
 if __name__ == '__main__':
-    args = commandline.LanguageInput.get_arguments('Get the phonemes from a language')
+    description = 'Get the phonemes from a language'
+    args = commandline.LanguageInput.get_arguments(description)
     phonemes = get_phonemes(args.language)
     commandline.output_list(phonemes)
