@@ -72,6 +72,7 @@ class PronunciationExamplesTest(testcase.BaseTestCase):
         examples = self.test_class(available_phonemes)
         self.assertFalse(examples._all_valid_phonemes(entry))
 
+
 class AllHaveSameLengthTest(testcase.BaseTestCase):
     def setUp(self):
         self.fun = get_pronunciation_examples._all_have_same_length
@@ -90,19 +91,28 @@ class AllHaveSameLengthTest(testcase.BaseTestCase):
     def test_negative_case(self, _, entry):
         self.assertFalse(self.fun(entry))
 
+
 class GetEqualPhonemesTest(testcase.BaseTestCase):
     def setUp(self):
         self.fun = get_pronunciation_examples._get_equal_phonemes
 
     @params(
-        ('one entry one phoneme', ['a'], ['a']),
-        ('one entry two phonemes', ['ab'], ['a', 'b']),
-        ('one entry equal phonemes', ['aa'], ['a']),
-        ('two entries unequal phonemes', ['a', 'b'], []),
-        ('two entries partly equal phonemes', ['ab', 'ab'], ['a', 'b']),
-        ('two entries symmetric equal phonemes', ['ab', 'ba'], []),
-        ('three entries two equal, other different', ['ab', 'ac', 'dd'], []),
-        ('three entries two equal, other partially different', ['ab', 'ab', 'ad'], ['a']),
+        ('one entry one phoneme',
+            ['a'], ['a']),
+        ('one entry two phonemes',
+            ['ab'], ['a', 'b']),
+        ('one entry equal phonemes',
+            ['aa'], ['a']),
+        ('two entries unequal phonemes',
+            ['a', 'b'], []),
+        ('two entries partly equal phonemes',
+            ['ab', 'ab'], ['a', 'b']),
+        ('two entries symmetric equal phonemes',
+            ['ab', 'ba'], []),
+        ('three entries two equal, other different',
+            ['ab', 'ac', 'dd'], []),
+        ('three entries two equal, other partially different',
+            ['ab', 'ab', 'ad'], ['a']),
             )
     def test_positive_case(self, _, entry, expected):
         self.assertItemsEqual(self.fun(entry), expected)
@@ -110,4 +120,3 @@ class GetEqualPhonemesTest(testcase.BaseTestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
