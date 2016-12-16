@@ -5,5 +5,6 @@ install:
     - pip install -r requirements.txt
 
 script:
+    - paver lint
     - nose2 --with-coverage --config dev_configs/nose2.cfg
     - cd tests ; lettuce

@@ -1,5 +1,5 @@
 import os
-
+import sys
 PACKAGEDIR = os.path.dirname(os.path.dirname(__file__))
 DATADIR = '{}/data/'.format(PACKAGEDIR)
 hermit_dave_github = "https://raw.github.com/hermitdave/FrequencyWords/master/content/2016/" # noqa
