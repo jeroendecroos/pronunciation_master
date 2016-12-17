@@ -56,6 +56,6 @@ def get_phonemes(language):
 
 if __name__ == '__main__':
     description = 'Get the phonemes from a language'
-    args = commandline.LanguageInput.get_arguments(description)
+    args = commandline.LanguageInput.parse_arguments(description)
     phonemes = get_phonemes(args.language)
     commandline.output_list(phonemes)

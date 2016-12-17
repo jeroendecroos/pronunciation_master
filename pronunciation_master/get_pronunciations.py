@@ -70,7 +70,7 @@ def list_pronunciations(pronunciation_entries):
 
 def main():
     description = 'Get the phonemes from a language'
-    args = commandline.LanguageAndWordInput.get_arguments(description)
+    args = commandline.LanguageAndWordInput.parse_arguments(description)
     pronunciations = get_pronunciations(args.language, args.word)
     if not pronunciations:
         message = "No pronunciations found for word '{}' in language '{}'"

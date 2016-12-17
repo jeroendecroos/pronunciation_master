@@ -1,5 +1,7 @@
 """ library to interface the commandline for all scripts
 """
+import os
+import sys
 import argparse
 
 
@@ -20,39 +22,41 @@ class ArgumentParser(argparse.ArgumentParser):
             help='the word we want the pronunciations for')
 
 
-class CommonArgumentParser(object):
+class CommonArguments(object):
 
     @classmethod
-    def get_arguments(cls, description):
+    def parse_arguments(cls, description, argv=None):
+        argv = sys.argv[1:] if argv is None else argv
         parser = ArgumentParser(description=description)
         cls._add_arguments(parser)
-        return parser.parse_args()
+        return parser.parse_args(argv)
 
     @staticmethod
     def _add_arguments(parser):
         pass
 
 
-class LanguageInput(CommonArgumentParser):
+class LanguageInput(CommonArguments):
     @staticmethod
     def _add_arguments(parser):
         parser.add_language()
 
 
-class LanguageAndWordInput(CommonArgumentParser):
+class LanguageAndWordInput(CommonArguments):
     @staticmethod
     def _add_arguments(parser):
         parser.add_language()
         parser.add_word()
 
 
-def output_list(iterable):
+def output_list(iterable, out=sys.stdout):
     for item in iterable:
-        print(item.encode('utf8'))
+        out.write(item.encode('utf8') + os.linesep)
 
 
-def output_dict(iterable):
+def output_dict(iterable, out=sys.stdout):
     for key, values in iterable.items():
         formatted_values = ', '.join(values).encode('utf8')
         formatted_key = key.encode('utf8')
-        print('{}: {}'.format(formatted_key, formatted_values))
+        line = '{}: {}'.format(formatted_key, formatted_values)
+        out.write(line + os.linesep)

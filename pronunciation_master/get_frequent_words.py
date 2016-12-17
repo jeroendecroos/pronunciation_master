@@ -72,6 +72,6 @@ def _get_frequency_list_from_filestream(instream):
 
 if __name__ == '__main__':
     description = 'Get the word frequencies for a language'
-    args = commandline.LanguageInput.get_arguments(description)
+    args = commandline.LanguageInput.parse_arguments(description)
     frequency_list = get_frequency_list(args.language)
     commandline.output_list(frequency_list[:5])

@@ -75,6 +75,6 @@ def get_pronunciation_examples(language, max=10):
 
 if __name__ == '__main__':
     description = 'Get the pronunciaton_examples for a language'
-    args = commandline.LanguageInput.get_arguments(description)
+    args = commandline.LanguageInput.parse_arguments(description)
     pronunciation_examples = get_pronunciation_examples(args.language)
     commandline.output_dict(pronunciation_examples)
