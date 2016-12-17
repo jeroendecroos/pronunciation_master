@@ -29,5 +29,15 @@ class PhonemesTest(testcase.BaseTestCase):
         self.assertItemsEqual(ret, phoneme_list)
 
 
+class GetPhonemesTest(testcase.BaseTestCase):
+    def setUp(self):
+        _, self.temporary_source = tempfile.mkstemp()
+
+    def test_basic(self):
+        phoneme_list = ['p1', 'p2']
+        create_phoneme_data_phiobe(self.temporary_source, 'nld', phoneme_list)
+        ret = get_phonemes.get_phonemes('dutch')
+        self.assertItemsEqual(ret, phoneme_list)
+
 if __name__ == '__main__':
     unittest.main()
