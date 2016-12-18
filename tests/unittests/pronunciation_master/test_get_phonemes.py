@@ -39,5 +39,6 @@ class GetPhonemesTest(testcase.BaseTestCase):
         ret = get_phonemes.get_phonemes('dutch')
         self.assertItemsEqual(ret, phoneme_list)
 
+
 if __name__ == '__main__':
     unittest.main()
