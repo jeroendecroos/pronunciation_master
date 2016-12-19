@@ -10,17 +10,6 @@ import commandline
 
 def get_frequency_list(language):
     """ returns a list of the most frequent words of a language
-
-    Arguments:
-        language=String     language for which to get the list
-    Returns
-        List        most frequent words in frequency-order
-    """
-    return _get_frequency_list_from_hermitdave(language)
-
-
-def _get_frequency_list_from_hermitdave(language):
-    """ returns a list of the most frequent words of a language
     the frequency lists are processede starting from the list hermitdave made
     see: https://github.com/hermitdave/FrequencyWords/
     or https://invokeit.wordpress.com/frequency-word-lists/
