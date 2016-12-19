@@ -1,6 +1,6 @@
 
-import tests.testlib.testcase as testcase
-import pronunciation_master.language_codes as language_codes
+from pronunciation_master.tests.testlib import testcase
+from pronunciation_master.src import language_codes
 
 
 class LanguageCodeTest(testcase.BaseTestCase):

@@ -3,8 +3,8 @@ import unittest
 import mock
 from nose2.tools import params
 
-import tests.testlib.testcase as testcase
-import pronunciation_master.get_pronunciations as get_pronunciations
+from pronunciation_master.tests.testlib import testcase
+from pronunciation_master.src import get_pronunciations
 
 
 class FilterPronunciationsTest(testcase.BaseTestCase):

@@ -2,8 +2,8 @@ import os
 from StringIO import StringIO
 from nose2.tools import params
 
-import tests.testlib.testcase as testcase
-import pronunciation_master.commandline as commandline
+from pronunciation_master.tests.testlib import testcase
+from pronunciation_master.src import commandline
 
 
 class ArgumentParserTest(testcase.BaseTestCase):

@@ -2,8 +2,8 @@ import os
 import unittest
 import tempfile
 
-import tests.testlib.testcase as testcase
-import pronunciation_master.get_phonemes as get_phonemes
+from pronunciation_master.tests.testlib import testcase
+from pronunciation_master.src import get_phonemes
 
 
 def create_phoneme_data_phiobe(filepath, language, phonemes):

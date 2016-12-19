@@ -2,8 +2,8 @@ import unittest
 import tempfile
 import os
 
-import tests.testlib.testcase as testcase
-import pronunciation_master.get_frequent_words as get_frequent_words
+from pronunciation_master.tests.testlib import testcase
+from pronunciation_master.src import get_frequent_words
 
 
 class GetFrequencyListFromFile(testcase.BaseTestCase):
