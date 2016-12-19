@@ -1,5 +1,6 @@
 import unittest
 from nose2.tools import params
+import mock
 
 from pronunciation_master.tests.testlib import testcase
 from pronunciation_master.src import get_pronunciation_examples
@@ -16,7 +17,7 @@ class PronunciationExamplesTest(testcase.BaseTestCase):
 
     def test_keys(self):
         examples = self.test_class(['a'])
-        self.assertItemsEqual(examples.keys(), 'a')
+        self.assertItemsEqual(examples.keys(), ['a'])
 
     def test_items(self):
         examples = self.test_class(['a'])
@@ -25,6 +26,10 @@ class PronunciationExamplesTest(testcase.BaseTestCase):
     def test_values(self):
         examples = self.test_class(['a'])
         self.assertItemsEqual(examples.values(), [[]])
+
+    def test_iter(self):
+        examples = self.test_class(['a'])
+        self.assertItemsEqual([x for x in examples], ['a'])
 
     @params(
         ('non valid phonemes',
@@ -112,6 +117,35 @@ class GetEqualPhonemesTest(testcase.BaseTestCase):
             )
     def test_positive_case(self, _, entry, expected):
         self.assertItemsEqual(self.fun(entry), expected)
+
+
+class GetPronunciationExamplesTest(testcase.BaseTestCase):
+    def setUp(self):
+        self.fun = get_pronunciation_examples.get_pronunciation_examples
+        data = mock.Mock()
+        get_pronunciation_examples.DataGetters = data
+        data.phonemes = mock.Mock(return_value=['a', 'b'])
+        data.words = mock.Mock(return_value=['word'])
+        data.pronunciations = mock.Mock(side_effect=self.get_pronunciations)
+        self.data = data
+
+    @staticmethod
+    def get_pronunciations(x, y):
+        pronunciations = {'word': ['a']}
+        if y in pronunciations:
+            return pronunciations[y]
+        else:
+            return []
+
+    def test_one_word(self):
+        examples = self.fun('dutch', 1)
+        self.assertItemsEqual(examples.keys(), ['a', 'b'])
+        self.assertItemsEqual(examples['a'], ['word'])
+
+    def test_no_word(self):
+        self.data.words = mock.Mock(return_value=['notinlist'])
+        examples = self.fun('dutch', 1)
+        self.assertItemsEqual(examples['a'], [])
 
 
 if __name__ == '__main__':

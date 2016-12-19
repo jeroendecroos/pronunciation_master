@@ -62,12 +62,25 @@ class PronunciationExamples(object):
         return self._examples.values()
 
 
-def get_pronunciation_examples(language, max=10):
-    phonemes = get_phonemes.get_phonemes(language)
-    frequent_words = get_frequent_words.get_frequency_list(language)
+class DataGetters(object):
+    """ datastructure to hold different functions to get data
+    """
+    phonemes = staticmethod(get_phonemes.get_phonemes)
+    words = staticmethod(get_frequent_words.get_frequency_list)
+    pronunciations = staticmethod(get_pronunciations.get_pronunciations)
+
+
+def get_pronunciation_examples(language, max_words=10):
+    """ get the pronunciation examples for a certain language
+    Arguments:
+        Language = target language
+        max_words = maximum number of words to try
+    """
+    phonemes = DataGetters.phonemes(language)
+    frequent_words = DataGetters.words(language)
     examples = PronunciationExamples(phonemes)
-    for word in frequent_words[:max]:
-        pronunciations = get_pronunciations.get_pronunciations(language, word)
+    for word in frequent_words[:max_words]:
+        pronunciations = DataGetters.pronunciations(language, word)
         if pronunciations:
             examples.add_pronunciations(word, pronunciations)
     return examples
