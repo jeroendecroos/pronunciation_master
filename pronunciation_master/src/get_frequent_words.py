@@ -44,6 +44,9 @@ def _get_frequency_list_from_file(file_pointer):
     """
     with open(file_pointer) as instream:
         freq_list = _get_frequency_list_from_filestream(instream)
+    if not freq_list:
+        mes = 'no frequency list found in {}'.format(file_pointer)
+        raise RuntimeError(mes)
     return freq_list
 
 
@@ -52,9 +55,9 @@ def _get_frequency_list_from_filestream(instream):
     """
     freq_list = []
     for line in instream:
-        if not line:
+        if not line.strip():
             break
-        word, freq = line.split()
+        word, freq = line.strip().split()
         freq_list.append(word)
     return freq_list
 
