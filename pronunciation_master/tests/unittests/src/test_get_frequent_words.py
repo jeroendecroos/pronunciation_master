@@ -1,6 +1,7 @@
 import unittest
 import tempfile
 import os
+import mock
 
 from pronunciation_master.tests.testlib import testcase
 from pronunciation_master.src import get_frequent_words
@@ -51,6 +52,18 @@ class GetHermitdavePage(testcase.BaseTestCase):
         page = get_frequent_words._get_hermitdave_page('nl')
         line = page.readline()
         self.assertEqual(line, 'ik 8106228\n')
+
+
+class GetFrequencyList(testcase.BaseTestCase):
+    def setUp(self):
+        self.fun = get_frequent_words.get_frequency_list
+
+    def test_one_word(self):
+        data = mock.Mock()
+        get_frequent_words.FrequencySources = data
+        data.language_code = mock.Mock(side_effect=lambda x: x)
+        data.frequency_filestream = mock.Mock(return_value=['word 5\n'])
+        self.assertEqual(self.fun('dutch'), ['word'])
 
 
 if __name__ == '__main__':

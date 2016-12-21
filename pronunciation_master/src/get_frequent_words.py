@@ -19,8 +19,8 @@ def get_frequency_list(language):
     Returns
         List        most frequent words in frequency-order
     """
-    hermitdave_language_code = language_codes.HermitDave.map(language)
-    file_pointer = _get_hermitdave_page(hermitdave_language_code)
+    _language_code = FrequencySources.language_code(language)
+    file_pointer = FrequencySources.frequency_filestream(_language_code)
     return _get_frequency_list_from_filestream(file_pointer)
 
 
@@ -37,6 +37,11 @@ def _get_hermitdave_page(language_code):
     text = requests.get(page_path).text
     stream = StringIO.StringIO(text)
     return stream
+
+
+class FrequencySources(object):
+    language_code = staticmethod(language_codes.HermitDave.map)
+    frequency_filestream = staticmethod(_get_hermitdave_page)
 
 
 def _get_frequency_list_from_file(file_pointer):
