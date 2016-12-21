@@ -64,9 +64,13 @@ class GetPronunciationsTest(testcase.BaseTestCase):
         """ We need to fake get_wiktionary_entry because this makes an external call.
         """
         self.get_wiktionary_entry = mock.Mock()
+        self.get_wiktionary_entry_bu = get_pronunciations.get_wiktionary_entry
         get_pronunciations.get_wiktionary_entry = self.get_wiktionary_entry
         self.fun = get_pronunciations.get_pronunciations
         self.get_wiktionary_entry.return_value = []
+
+    def tearDown(self):
+        get_pronunciations.get_wiktionary_entry = self.get_wiktionary_entry_bu
 
     def test_raise_bad_language(self):
         with self.assertRaises(ValueError):
@@ -77,6 +81,14 @@ class GetPronunciationsTest(testcase.BaseTestCase):
         self.get_wiktionary_entry.return_value = [entry]
         ret = self.fun('dutch', 'bad')
         self.assertItemsEqual(ret, ['ba'])
+
+
+class GetWiktionaryEntry(testcase.BaseTestCase):
+    def test_interface(self):
+        get_pronunciations.WiktionaryParser = mock.Mock()
+        get_pronunciations.get_wiktionary_entry('lan', 'word')
+
+
 
 
 if __name__ == '__main__':
