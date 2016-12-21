@@ -7,4 +7,4 @@ install:
 script:
     - paver lint
     - nose2 --with-coverage --coverage-report=term-missing --config dev_configs/nose2.cfg
-    - cd pronunciation_master/src/tests ; lettuce
+    - cd pronunciation_master/src/tests ; lettuce --verbosity=2
