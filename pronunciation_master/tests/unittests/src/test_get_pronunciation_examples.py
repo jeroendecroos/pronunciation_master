@@ -197,7 +197,7 @@ class PronunciationTest(testcase.BaseTestCase):
 
     @params(('two bad', 'aXY'),
             ('one bad, one good', 'bab'),
-           )
+            )
     def test_assert_raises_bad_overlap(self, _, entry):
         with self.assertRaises(ValueError):
             self.creator(entry, ['ab', 'a'])

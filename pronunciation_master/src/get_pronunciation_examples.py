@@ -38,7 +38,7 @@ class Pronunciation(object):
     """ class to split up to hold pronunciations data
     """
     def __init__(self, pronunciation, phonemes):
-        self._phonemes = phonemes
+        self._phonemes = sorted(phonemes, key=len, reverse=True)
         self.original_pronunciation = pronunciation
         self.IPA_pronunciation = self._split_into_phonemes(pronunciation)
 
@@ -52,15 +52,22 @@ class Pronunciation(object):
         return self.IPA_pronunciation[index]
 
     def _split_into_phonemes(self, pronunciation):
-        pronunciation_splitted = [p for p in pronunciation]
-        if not self._valid_phonemes(pronunciation_splitted):
-            mes = 'not all known phonemes in pronunciation {}'
-            raise ValueError(mes.format(pronunciation_splitted))
+        pronunciation_splitted = []
+        while pronunciation:
+            phoneme = self._get_next_phoneme(pronunciation)
+            if not phoneme:
+                template = 'not all known phonemes in pronunciation {}+{}'
+                raise ValueError(template.format(pronunciation_splitted,
+                                                 pronunciation))
+            pronunciation_splitted.append(phoneme)
+            pronunciation = pronunciation[len(phoneme):]
         return pronunciation_splitted
 
-    def _valid_phonemes(self, pronunciation):
-        return all(phoneme in self._phonemes
-                   for phoneme in pronunciation)
+    def _get_next_phoneme(self, pronunciation):
+        for phoneme in self._phonemes:
+            if pronunciation.startswith(phoneme):
+                return phoneme
+        return None
 
 
 class PronunciationExamples(object):
