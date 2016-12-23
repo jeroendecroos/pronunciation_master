@@ -168,13 +168,64 @@ class PronunciationTest(testcase.BaseTestCase):
         pronunciation = self.creator(entry, ['a', 'b'])
         self.assertEqual(list(pronunciation), expected)
 
-    @params(('one bad', 'X'),
-            ('two bad', 'XX'),
-            ('one bad, one good', 'aX'),
+    @params(('one phoneme', 'ab', ['ab']),
+            ('two equal phonemes', 'abab', ['ab', 'ab']),
+            ('two unequal phonemes', 'abc', ['ab', 'c']),
             )
-    def test_assert_Raises(self, _, entry):
+    def test_create_good_double_phonemes(self, _, entry, expected):
+        pronunciation = self.creator(entry, ['ab', 'c'])
+        self.assertEqual(list(pronunciation), expected)
+
+    @params(('one bad', 'aX'),
+            ('two bad', 'aXY'),
+            ('one bad, one good', 'abX'),
+            ('in between', 'aXb'),
+            ('mixed', 'abaab'),
+            )
+    def test_assert_raises(self, _, entry):
         with self.assertRaises(ValueError):
-            self.creator(entry, ['a', 'b'])
+            self.creator(entry, ['ab', 'c'])
+
+    @params(('one phoneme', 'ab', ['ab']),
+            ('two equal phonemes', 'abab', ['ab', 'ab']),
+            ('two unequal phonemes', 'aba', ['ab', 'a']),
+            ('two unequal phonemes', 'aab', ['a', 'ab']),
+            )
+    def test_create_good_overlap(self, _, entry, expected):
+        pronunciation = self.creator(entry, ['ab', 'a'])
+        self.assertEqual(list(pronunciation), expected)
+
+    @params(('two bad', 'aXY'),
+            ('one bad, one good', 'bab'),
+           )
+    def test_assert_raises_bad_overlap(self, _, entry):
+        with self.assertRaises(ValueError):
+            self.creator(entry, ['ab', 'a'])
+
+    @params(('one phoneme', 'ab', ['ab']),
+            ('two equal phonemes', 'abac', ['ab', 'ac']),
+            )
+    def test_create_good_partial_overlap(self, _, entry, expected):
+        pronunciation = self.creator(entry, ['ab', 'ac'])
+        self.assertEqual(list(pronunciation), expected)
+
+    @params(('one phoneme', 'a', ['a']),
+            ('two equal phonemes', 'aa', ['aa']),
+            ('two equal phonemes', 'aab', ['aa', 'b']),
+            ('two equal phonemes', 'aaa', ['aa', 'a']),
+            )
+    def test_create_good_short_long_version(self, _, entry, expected):
+        pronunciation = self.creator(entry, ['a', 'aa', 'b'])
+        self.assertEqual(list(pronunciation), expected)
+
+    @params(('one phoneme', 'a', ['a']),
+            ('two equal phonemes', 'ab', ['ab']),
+            ('two equal phonemes', 'aab', ['a', 'ab']),
+            ('two equal phonemes', 'abba', ['ab', 'b', 'a']),
+            )
+    def test_create_good_similar_splitted(self, _, entry, expected):
+        pronunciation = self.creator(entry, ['a', 'ab', 'b'])
+        self.assertEqual(list(pronunciation), expected)
 
 
 if __name__ == '__main__':
