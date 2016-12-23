@@ -89,7 +89,5 @@ class GetWiktionaryEntry(testcase.BaseTestCase):
         get_pronunciations.get_wiktionary_entry('lan', 'word')
 
 
-
-
 if __name__ == '__main__':
     unittest.main()
