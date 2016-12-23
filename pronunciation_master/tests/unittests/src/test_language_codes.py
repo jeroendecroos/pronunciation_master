@@ -19,7 +19,7 @@ class HermitDaveLanguageCodeTest(LanguageCodeTest):
 
     @params(('dutch', 'nl'),
             ('Dutch', 'nl'),
-            ('aragonese', 'arg'),
+            ('aragonese', 'an'),
             )
     def test_language(self, language, code):
         self.assertEqual(self.fun(language), code)
@@ -32,6 +32,18 @@ class PhoibeLanguageCodeTest(LanguageCodeTest):
     @params(('dutch', 'nld'),
             ('Dutch', 'nld'),
             ('aragonese', 'arg'),
+            )
+    def test_language(self, language, code):
+        self.assertEqual(self.fun(language), code)
+
+
+class WiktionaryLanguageCodeTest(LanguageCodeTest):
+    def setUp(self):
+        self.fun = language_codes.Wiktionary.map
+
+    @params(('dutch', 'dutch'),
+            ('Dutch', 'dutch'),
+            ('aragonese', 'aragonese'),
             )
     def test_language(self, language, code):
         self.assertEqual(self.fun(language), code)

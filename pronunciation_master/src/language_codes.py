@@ -1,38 +1,51 @@
 import abc
+import iso639
+
+
+def iso639_key(fun):
+    def new_fun(self, key):
+        correct_key = key.capitalize()
+        value = fun(self, correct_key)
+        return value
+    return new_fun
 
 
 class ISO639(object):
     __metaclass__ = abc.ABCMeta
 
-    @abc.abstractmethod
+    @iso639_key
     def __getitem__(self, key):
-        """ This method should return a isoX value for the language key
-        """
+        return self._get_entry(key)
+
+    @iso639_key
+    def __contains__(self, key):
+        try:
+            if self._get_entry(key):
+                return True
+            else:
+                return False
+        except KeyError:
+            return False
 
     @abc.abstractmethod
-    def __contains__(self, key):
-        """ This method should check if it has an ISOX entry language key
-        """
+    def _get_entry(self, key):
+        ''' get a specific entry for a value key
+        '''
 
 
 class ISO639_2(ISO639):
-    codes = {'dutch': 'nl'}
-
-    def __getitem__(self, key):
-        return self.codes[key]
-
-    def __contains__(self, key):
-        return key in self.codes
+    def _get_entry(self, key):
+        return iso639.languages.get(name=key).part1
 
 
 class ISO639_3(ISO639):
-    codes = {'dutch': 'nld'}
+    def _get_entry(self, key):
+        return iso639.languages.get(name=key).part3
 
-    def __getitem__(self, key):
-        return self.codes[key]
 
-    def __contains__(self, key):
-        return key in self.codes
+class ISO639_Names(ISO639):
+    def _get_entry(self, key):
+        return iso639.languages.get(name=key).name
 
 
 class LanguageCodes(object):
@@ -46,7 +59,7 @@ class LanguageCodes(object):
     def map(cls, language):
         language = language.lower()
         cls.check_valid_language(language)
-        return cls.codes[language]
+        return cls.codes[language].lower()
 
     @classmethod
     def check_valid_language(cls, language):
@@ -69,4 +82,4 @@ class Phoibe(LanguageCodes):
 class Wiktionary(LanguageCodes):
     """ mapping to serve wiktionary
     """
-    codes = {'dutch': 'dutch'}
+    codes = ISO639_Names()
