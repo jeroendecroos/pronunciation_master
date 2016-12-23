@@ -9,7 +9,7 @@ import get_frequent_words
 
 
 def _all_have_same_length(items):
-    example = next(iter(items))  # set robust
+    example = next(iter(items))
     return all(len(item) == len(example) for item in items)
 
 
@@ -26,9 +26,47 @@ def _get_equal_phonemes(pronunciations):
     return set(equal_phonemes)
 
 
+class PronunciationFactory(object):
+    def __init__(self, phonemes):
+        self.phonemes = phonemes
+
+    def create(self, pronunciation):
+        return Pronunciation(pronunciation, self.phonemes)
+
+
+class Pronunciation(object):
+    """ class to split up to hold pronunciations data
+    """
+    def __init__(self, pronunciation, phonemes):
+        self._phonemes = phonemes
+        self.original_pronunciation = pronunciation
+        self.IPA_pronunciation = self._split_into_phonemes(pronunciation)
+
+    def __iter__(self):
+        return iter(self.IPA_pronunciation)
+
+    def __len__(self):
+        return len(self.IPA_pronunciation)
+
+    def __getitem__(self, index):
+        return self.IPA_pronunciation[index]
+
+    def _split_into_phonemes(self, pronunciation):
+        pronunciation_splitted = [p for p in pronunciation]
+        if not self._valid_phonemes(pronunciation_splitted):
+            mes = 'not all known phonemes in pronunciation {}'
+            raise ValueError(mes.format(pronunciation_splitted))
+        return pronunciation_splitted
+
+    def _valid_phonemes(self, pronunciation):
+        return all(phoneme in self._phonemes
+                   for phoneme in pronunciation)
+
+
 class PronunciationExamples(object):
     def __init__(self, phonemes):
         self._examples = {key: [] for key in phonemes}
+        self.factory = PronunciationFactory(phonemes)
 
     def add_pronunciations(self, word, pronunciations):
         """ adds for each phoneme in the pronunciations this words
@@ -36,15 +74,18 @@ class PronunciationExamples(object):
                 ('ab', 'ac'-> only phoneme 'a')
         unequal lengths 'abc', 'bc' will be all ignored till better algorithm
         """
-        if _all_have_same_length(pronunciations):
-            if self._all_valid_phonemes(pronunciations):
-                phonemes = _get_equal_phonemes(pronunciations)
-                [self._examples[phoneme].append(word) for phoneme in phonemes]
+        pronunciations_IPA = list(self._IPA_pronunciations(pronunciations))
+        if pronunciations_IPA and _all_have_same_length(pronunciations_IPA):
+            phonemes = _get_equal_phonemes(pronunciations_IPA)
+            for phoneme in phonemes:
+                self._examples[phoneme].append(word)
 
-    def _all_valid_phonemes(self, pronunciations):
-        return all(phoneme in self._examples
-                   for pronunciation in pronunciations
-                   for phoneme in pronunciation)
+    def _IPA_pronunciations(self, pronunciations):
+        for p in pronunciations:
+            try:
+                yield self.factory.create(p)
+            except ValueError:
+                continue
 
     def __getitem__(self, name):
         return self._examples[name]

@@ -57,21 +57,16 @@ class PronunciationExamplesTest(testcase.BaseTestCase):
         self.assertDictEqual(dict(examples), expected)
 
     @params(
-            ('one phoneme', ['a']),
-            ('two phonemes', ['ab']),
-            ('two pronounciations', ['a', 'b']),
+            ('one phoneme', ['a'], 1),
+            ('two phonemes', ['ab'], 1),
+            ('two pronounciations', ['a', 'b'], 2),
+            ('one right, one wrong', ['a', 'x'], 1),
+            ('one right, one partialy wrong', ['ab', 'ax'], 1),
             )
-    def test_all_valid_phonemes_positive(self, _, entry):
+    def test_IPA_pronunciations(self, _, entry, number_created):
         examples = self.test_class(available_phonemes)
-        self.assertTrue(examples._all_valid_phonemes(entry))
-
-    @params(
-            ('one right, one wrong', ['a', 'x']),
-            ('one right, one partialy wrong', ['ab', 'ax']),
-            )
-    def test_all_valid_phonemes_negative(self, _, entry):
-        examples = self.test_class(available_phonemes)
-        self.assertFalse(examples._all_valid_phonemes(entry))
+        IPAs = [x for x in examples._IPA_pronunciations(entry)]
+        self.assertEqual(len(IPAs), number_created)
 
 
 class AllHaveSameLengthTest(testcase.BaseTestCase):
@@ -146,6 +141,40 @@ class GetPronunciationExamplesTest(testcase.BaseTestCase):
         self.data.words = mock.Mock(return_value=['notinlist'])
         examples = self.fun('dutch', 1)
         self.assertItemsEqual(examples['a'], [])
+
+
+class PronunciationFactoryTest(testcase.BaseTestCase):
+    def test_create_good(self):
+        factory = get_pronunciation_examples.PronunciationFactory(['a'])
+        pronunciation = factory.create('aaa')
+        expected_type = get_pronunciation_examples.Pronunciation
+        self.assertTrue(isinstance(pronunciation, expected_type))
+
+    def test_assert_raises_bad(self):
+        factory = get_pronunciation_examples.PronunciationFactory(['a'])
+        with self.assertRaises(ValueError):
+            factory.create('bbb')
+
+
+class PronunciationTest(testcase.BaseTestCase):
+    def setUp(self):
+        self.creator = get_pronunciation_examples.Pronunciation
+
+    @params(('one phoneme', 'a', ['a']),
+            ('two equal phonemes', 'aa', ['a', 'a']),
+            ('two unequal phonemes', 'ab', ['a', 'b']),
+            )
+    def test_create_good_simple(self, _, entry, expected):
+        pronunciation = self.creator(entry, ['a', 'b'])
+        self.assertEqual(list(pronunciation), expected)
+
+    @params(('one bad', 'X'),
+            ('two bad', 'XX'),
+            ('one bad, one good', 'aX'),
+            )
+    def test_assert_Raises(self, _, entry):
+        with self.assertRaises(ValueError):
+            self.creator(entry, ['a', 'b'])
 
 
 if __name__ == '__main__':
