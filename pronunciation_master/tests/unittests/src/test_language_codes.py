@@ -1,3 +1,4 @@
+from nose2.tools import params
 
 from pronunciation_master.tests.testlib import testcase
 from pronunciation_master.src import language_codes
@@ -16,13 +17,21 @@ class HermitDaveLanguageCodeTest(LanguageCodeTest):
     def setUp(self):
         self.fun = language_codes.HermitDave.map
 
-    def test_dutch(self):
-        self.assertEqual(self.fun('dutch'), 'nl')
+    @params(('dutch', 'nl'),
+            ('Dutch', 'nl'),
+            ('aragonese', 'arg'),
+            )
+    def test_language(self, language, code):
+        self.assertEqual(self.fun(language), code)
 
 
 class PhoibeLanguageCodeTest(LanguageCodeTest):
     def setUp(self):
         self.fun = language_codes.Phoibe.map
 
-    def test_dutch(self):
-        self.assertEqual(self.fun('dutch'), 'nld')
+    @params(('dutch', 'nld'),
+            ('Dutch', 'nld'),
+            ('aragonese', 'arg'),
+            )
+    def test_language(self, language, code):
+        self.assertEqual(self.fun(language), code)
