@@ -71,9 +71,10 @@ class Pronunciation(object):
 
 
 class PronunciationExamples(object):
-    def __init__(self, phonemes):
+    def __init__(self, phonemes, max_examples=5):
         self._examples = {key: [] for key in phonemes}
-        self.factory = PronunciationFactory(phonemes)
+        self._factory = PronunciationFactory(phonemes)
+        self.max_examples = max_examples
 
     def add_pronunciations(self, word, pronunciations):
         """ adds for each phoneme in the pronunciations this words
@@ -85,12 +86,13 @@ class PronunciationExamples(object):
         if pronunciations_IPA and _all_have_same_length(pronunciations_IPA):
             phonemes = _get_equal_phonemes(pronunciations_IPA)
             for phoneme in phonemes:
-                self._examples[phoneme].append(word)
+                if len(self._examples[phoneme]) < self.max_examples:
+                    self._examples[phoneme].append(word)
 
     def _IPA_pronunciations(self, pronunciations):
         for p in pronunciations:
             try:
-                yield self.factory.create(p)
+                yield self._factory.create(p)
             except ValueError:
                 continue
 
@@ -118,7 +120,7 @@ class DataGetters(object):
     pronunciations = staticmethod(get_pronunciations.get_pronunciations)
 
 
-def get_pronunciation_examples(language, max_words=10):
+def get_pronunciation_examples(language, max_words=1000):
     """ get the pronunciation examples for a certain language
     Arguments:
         Language = target language
