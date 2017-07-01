@@ -23,6 +23,18 @@ class ArgumentParserTest(testcase.BaseTestCase):
         args = parser.parse_args(['--word', 'd'])
         self.assertEqual(args.word, 'd')
 
+    def test_add_maximum_words_to_try(self):
+        parser = commandline.ArgumentParser()
+        parser.add_maximum_words_to_try()
+        args = parser.parse_args(['--maximum_words_to_try', '1'])
+        self.assertEqual(args.maximum_words_to_try, 1)
+
+    def test_add_arguments_by_name(self):
+        parser = commandline.ArgumentParser()
+        parser.add_arguments_by_name("word")
+        args = parser.parse_args(['--word', 'd'])
+        self.assertEqual(args.word, 'd')
+
     def test_wrong_argument(self):
         parser = commandline.ArgumentParser()
         with self.assertRaises(SystemExit):
