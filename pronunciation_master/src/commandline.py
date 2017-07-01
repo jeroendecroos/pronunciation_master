@@ -21,14 +21,27 @@ class ArgumentParser(argparse.ArgumentParser):
             '--word', dest='word', required=True,
             help='the word we want the pronunciations for')
 
+    def add_maximum_words_to_try(self):
+        self.add_argument(
+            '--maximum_words_to_try', dest='maximum_words_to_try',
+            required=False, default=10, type=int,
+            help='the word we want the pronunciations for')
+
+    def add_arguments_by_name(self, *args):
+        for argument in args:
+            method_name = 'add_'+argument
+            method = getattr(self, method_name)
+            method()
+
 
 class CommonArguments(object):
 
     @classmethod
-    def parse_arguments(cls, description, argv=None):
+    def parse_arguments(cls, description, argv=None, extra_arguments=tuple()):
         argv = sys.argv[1:] if argv is None else argv
         parser = ArgumentParser(description=description)
         cls._add_arguments(parser)
+        parser.add_arguments_by_name(*extra_arguments)
         return parser.parse_args(argv)
 
     @staticmethod
