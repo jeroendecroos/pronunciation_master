@@ -69,6 +69,18 @@ class PronunciationExamplesTest(testcase.BaseTestCase):
         self.assertEqual(len(IPAs), number_created)
 
 
+    @params(
+            ('less', [('1', 'a')], 1),
+            ('equal', [('1', 'a'), ('2', 'a')], 2),
+            ('more', [('1', 'a'), ('2', 'a'), ('3', 'a')], 2),
+            )
+    def test_max_examples(self, _, entry, number_created):
+        examples = self.test_class(available_phonemes, max_examples=2)
+        for word, pronunciation in entry:
+            examples.add_pronunciations(word, [pronunciation])
+        self.assertEqual(len(examples['a']), number_created)
+
+
 class AllHaveSameLengthTest(testcase.BaseTestCase):
     def setUp(self):
         self.fun = get_pronunciation_examples._all_have_same_length
