@@ -3,6 +3,8 @@ import iso639
 
 
 def iso639_key(fun):
+    """ wrapper to convert the input key to the appropriate format
+    """
     def new_fun(self, key):
         correct_key = key.capitalize()
         value = fun(self, correct_key)
@@ -11,6 +13,8 @@ def iso639_key(fun):
 
 
 class ISO639(object):
+    """ ISO639 language code container
+    """
     __metaclass__ = abc.ABCMeta
 
     @iso639_key
