@@ -19,6 +19,11 @@ def i_have_the_word(_, word):
     world.word = word
 
 
+@step(u'Given I want to try maximum "(.*)" words')
+def given_i_want_to_try_maximum_N_words(_, maximum_words_to_try):
+    world.maximum_words_to_try = maximum_words_to_try
+
+
 @step
 def ask_for_its_frequency_list(_):
     _external_program_runner(
@@ -38,10 +43,14 @@ def ask_for_its_phonemes(_):
 
 
 @step
-def ask_for_its_pronunciation_examples(_):
+def ask_for_pronunciation_examples(_):
     _external_program_runner(
         'get_pronunciation_examples.py',
-        ['language'],
+        [
+            'language',
+            'maximum_words_to_try',
+            'minimum_examples',
+            'maximum_examples'],
         _stdout_dict_parser
         )
 
@@ -76,9 +85,18 @@ def check_dict(step):
             assert value in world.stdout[test_key]
 
 
+@step('I don\'t see the following in the dict-list')
+def check_negative_dict(step):
+    tests = _transform_lettuce_hashes_into_dict(step.hashes)
+    for test_key, test_values in tests.iteritems():
+        for value in test_values:
+            assert value not in world.stdout[test_key]
+
+
 @step('Then I see the error message "(.*)"')
 def check_error_message(_, error_message):
     assert error_message in world.stderr
+
 
 ############################
 #
@@ -88,7 +106,8 @@ def check_error_message(_, error_message):
 
 
 def _external_program_runner(program, arguments, parser):
-    arguments = {'--{}'.format(a): getattr(world, a) for a in arguments}
+    arguments = {'--{}'.format(a): getattr(world, a)
+                 for a in arguments if hasattr(world, a)}
     arguments = list(itertools.chain.from_iterable(arguments.items()))
     path = os.path.join(testlib.project_vars.SRC_DIR, program)
     stdout, stderr, _ = testlib.testrun.run_program(path, arguments)

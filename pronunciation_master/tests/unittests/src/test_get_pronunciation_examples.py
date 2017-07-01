@@ -68,7 +68,6 @@ class PronunciationExamplesTest(testcase.BaseTestCase):
         IPAs = [x for x in examples._IPA_pronunciations(entry)]
         self.assertEqual(len(IPAs), number_created)
 
-
     @params(
             ('less', [('1', 'a')], 1),
             ('equal', [('1', 'a'), ('2', 'a')], 2),

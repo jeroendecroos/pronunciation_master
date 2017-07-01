@@ -138,6 +138,10 @@ def get_pronunciation_examples(language, max_words=10):
 
 if __name__ == '__main__':
     description = 'Get the pronunciaton_examples for a language'
-    args = commandline.LanguageInput.parse_arguments(description)
-    pronunciation_examples = get_pronunciation_examples(args.language)
+    args = commandline.LanguageInput.parse_arguments(
+            description,
+            extra_arguments=['maximum_words_to_try'])
+    pronunciation_examples = get_pronunciation_examples(
+        args.language,
+        max_words=args.maximum_words_to_try)
     commandline.output_dict(pronunciation_examples)
