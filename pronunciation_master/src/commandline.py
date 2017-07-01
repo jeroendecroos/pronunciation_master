@@ -3,6 +3,9 @@
 import os
 import sys
 import argparse
+import logging
+
+logging.basicConfig()
 
 
 class ArgumentParser(argparse.ArgumentParser):
@@ -25,7 +28,13 @@ class ArgumentParser(argparse.ArgumentParser):
         self.add_argument(
             '--maximum_words_to_try', dest='maximum_words_to_try',
             required=False, default=10, type=int,
-            help='the word we want the pronunciations for')
+            help='maximum number of words to test the pronunciation for')
+
+    def add_minimum_examples(self):
+        self.add_argument(
+            '--minimum_examples', dest='minimum_examples',
+            required=False, default=0, type=int,
+            help='stop searching when minimum amount is reached')
 
     def add_arguments_by_name(self, *args):
         for argument in args:
@@ -35,7 +44,6 @@ class ArgumentParser(argparse.ArgumentParser):
 
 
 class CommonArguments(object):
-
     @classmethod
     def parse_arguments(cls, description, argv=None, extra_arguments=tuple()):
         argv = sys.argv[1:] if argv is None else argv
@@ -60,6 +68,15 @@ class LanguageAndWordInput(CommonArguments):
     def _add_arguments(parser):
         parser.add_language()
         parser.add_word()
+
+
+def output_warnings(warnings, out=None):
+    logger = logging.getLogger()
+    if out:
+        stream_handler = logging.StreamHandler(out)
+        logger.addHandler(stream_handler)
+    for warning in warnings:
+        logger.warning(warning)
 
 
 def output_list(iterable, out=sys.stdout):

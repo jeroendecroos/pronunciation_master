@@ -74,10 +74,40 @@ class PronunciationExamplesTest(testcase.BaseTestCase):
             ('more', [('1', 'a'), ('2', 'a'), ('3', 'a')], 2),
             )
     def test_max_examples(self, _, entry, number_created):
-        examples = self.test_class(available_phonemes, max_examples=2)
+        examples = self.test_class(available_phonemes, maximum_examples=2)
         for word, pronunciation in entry:
             examples.add_pronunciations(word, [pronunciation])
         self.assertEqual(len(examples['a']), number_created)
+
+    @params(
+            ('less', [('1', 'a')], False),
+            ('equal', [('1', 'a'), ('2', 'a')], True),
+            ('more', [('1', 'a'), ('2', 'a'), ('3', 'a')], True),
+            ('one yes, one no', [('1', 'a'), ('2', 'a'), ('3', 'b')], False),
+            )
+    def test_reached_minimum(self, _, entry, reached):
+        phonemes = set(e[1] for e in entry)
+        examples = self.test_class(phonemes, minimum_examples=2)
+        for word, pronunciation in entry:
+            examples.add_pronunciations(word, [pronunciation])
+        self.assertEqual(examples.reached_minimum(), reached)
+
+
+class CheckExamplesNotReachingMinimumTest(testcase.BaseTestCase):
+    def setUp(self):
+        self.fun = get_pronunciation_examples.not_enough_examples_warnings
+
+    def test_no_minimum(self):
+        ret = self.fun({}, 0)
+        self.assertFalse(ret)
+
+    def test_success(self):
+        ret = self.fun({'a': [1]}, 1)
+        self.assertFalse(ret)
+
+    def test_failure(self):
+        ret = self.fun({'a': [1]}, 4)
+        self.assertTrue(ret)
 
 
 class AllHaveSameLengthTest(testcase.BaseTestCase):
@@ -152,6 +182,13 @@ class GetPronunciationExamplesTest(testcase.BaseTestCase):
         self.data.words = mock.Mock(return_value=['notinlist'])
         examples = self.fun('dutch', 1)
         self.assertItemsEqual(examples['a'], [])
+
+    def test_stop_when_minimum_examples_reached(self):
+        self.data.phonemes = mock.Mock(return_value=['a'])
+        self.data.words = mock.Mock(return_value=['word', '1', '2'])
+        examples = self.fun('dutch', 3, minimum_examples=1)
+        self.assertItemsEqual(examples['a'], ['word'])
+        self.assertEqual(self.data.pronunciations.call_count, 1)
 
 
 class PronunciationFactoryTest(testcase.BaseTestCase):

@@ -71,10 +71,12 @@ class Pronunciation(object):
 
 
 class PronunciationExamples(object):
-    def __init__(self, phonemes, max_examples=5):
+    def __init__(self, phonemes, minimum_examples=0, maximum_examples=5):
         self._examples = {key: [] for key in phonemes}
         self._factory = PronunciationFactory(phonemes)
-        self.max_examples = max_examples
+        assert minimum_examples <= maximum_examples
+        self.maximum_examples = maximum_examples
+        self.minimum_examples = minimum_examples
 
     def add_pronunciations(self, word, pronunciations):
         """ adds for each phoneme in the pronunciations this words
@@ -86,8 +88,16 @@ class PronunciationExamples(object):
         if pronunciations_IPA and _all_have_same_length(pronunciations_IPA):
             phonemes = _get_equal_phonemes(pronunciations_IPA)
             for phoneme in phonemes:
-                if len(self._examples[phoneme]) < self.max_examples:
+                if len(self._examples[phoneme]) < self.maximum_examples:
                     self._examples[phoneme].append(word)
+
+    def reached_minimum(self):
+        """ Check if all phonemes have at least the minimum amount of examples
+        """
+        if not self.minimum_examples:
+            return False
+        return all(len(v) >= self.minimum_examples
+                   for v in self._examples.values())
 
     def _IPA_pronunciations(self, pronunciations):
         for p in pronunciations:
@@ -120,7 +130,7 @@ class DataGetters(object):
     pronunciations = staticmethod(get_pronunciations.get_pronunciations)
 
 
-def get_pronunciation_examples(language, max_words=10):
+def get_pronunciation_examples(language, max_words=10, **kwargs):
     """ get the pronunciation examples for a certain language
     Arguments:
         Language = target language
@@ -128,20 +138,38 @@ def get_pronunciation_examples(language, max_words=10):
     """
     phonemes = DataGetters.phonemes(language)
     frequent_words = DataGetters.words(language)
-    examples = PronunciationExamples(phonemes)
+    examples = PronunciationExamples(phonemes, **kwargs)
     for word in frequent_words[:max_words]:
         pronunciations = DataGetters.pronunciations(language, word)
         if pronunciations:
             examples.add_pronunciations(word, pronunciations)
+        if examples.reached_minimum():
+            break
     return examples
+
+
+def not_enough_examples_warnings(examples, minimum):
+    warnings = []
+    warning_template = u"Couldn't find enough examples ({}) for '{}'"
+    for phoneme, words in examples.items():
+        if len(words) < minimum:
+            message = warning_template.format(minimum, phoneme)
+            warnings.append(message)
+    return warnings
 
 
 if __name__ == '__main__':
     description = 'Get the pronunciaton_examples for a language'
     args = commandline.LanguageInput.parse_arguments(
             description,
-            extra_arguments=['maximum_words_to_try'])
+            extra_arguments=[
+                'maximum_words_to_try',
+                'minimum_examples'])
     pronunciation_examples = get_pronunciation_examples(
         args.language,
-        max_words=args.maximum_words_to_try)
+        max_words=args.maximum_words_to_try,
+        minimum_examples=args.minimum_examples)
+    not_reached_messages = not_enough_examples_warnings(
+            pronunciation_examples, args.minimum_examples)
+    commandline.output_warnings(not_reached_messages)
     commandline.output_dict(pronunciation_examples)

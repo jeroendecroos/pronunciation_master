@@ -24,6 +24,11 @@ def given_i_want_to_try_maximum_N_words(_, maximum_words_to_try):
     world.maximum_words_to_try = maximum_words_to_try
 
 
+@step(u'I want to get minimum "(.*)" examples')
+def given_i_want_to_get_minimum_X_examples(_, minimum_examples):
+    world.minimum_examples = minimum_examples
+
+
 @step
 def ask_for_its_frequency_list(_):
     _external_program_runner(
@@ -98,6 +103,17 @@ def check_error_message(_, error_message):
     assert error_message in world.stderr
 
 
+@step('Then I "(.*)" see the warning message "(.*)"')
+def check_warning_message(_, in_log, warning_message):
+    warning_message = warning_message.encode('utf8')
+    if in_log == "do":
+        assert warning_message in world.stdout_warnings
+    elif in_log == "don't":
+        assert warning_message not in world.stdout_warnings
+    else:
+        raise Exception("in_log value is not valid for this lettuce step")
+
+
 ############################
 #
 #  UTILS
@@ -111,14 +127,22 @@ def _external_program_runner(program, arguments, parser):
     arguments = list(itertools.chain.from_iterable(arguments.items()))
     path = os.path.join(testlib.project_vars.SRC_DIR, program)
     stdout, stderr, _ = testlib.testrun.run_program(path, arguments)
-    world.stdout = parser(stdout)  # remove last empty
-    world.stderr = stderr
+    world.stdout_warnings, world.stderr = _seperate_warning_lines(stderr)
+    world.stdout = parser(stdout)
 
 
 def _transform_lettuce_hashes_into_dict(hashes):
     new_dict = collections.defaultdict(list)
     [new_dict[entry['key']].append(entry['value']) for entry in hashes]
     return new_dict
+
+
+def _seperate_warning_lines(stderr):
+    indicator = "WARNING"
+    lines = stderr.split('\n')
+    warnings = [l[len(indicator):] for l in lines if l.startswith(indicator)]
+    stderr = [l for l in lines if not l.startswith(indicator)]
+    return '\n'.join(warnings), '\n'.join(stderr)
 
 
 def _stdout_list_parser(stdout):

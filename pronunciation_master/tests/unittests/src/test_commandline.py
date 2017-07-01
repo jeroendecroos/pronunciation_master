@@ -29,6 +29,12 @@ class ArgumentParserTest(testcase.BaseTestCase):
         args = parser.parse_args(['--maximum_words_to_try', '1'])
         self.assertEqual(args.maximum_words_to_try, 1)
 
+    def test_add_minimum_examples(self):
+        parser = commandline.ArgumentParser()
+        parser.add_minimum_examples()
+        args = parser.parse_args(['--minimum_examples', '1'])
+        self.assertEqual(args.minimum_examples, 1)
+
     def test_add_arguments_by_name(self):
         parser = commandline.ArgumentParser()
         parser.add_arguments_by_name("word")
@@ -87,6 +93,26 @@ class OutputListTest(testcase.BaseTestCase):
               ),)
     def test_one_line(self, _, items, expected):
         fun = commandline.output_list
+        output = run_output_command(fun, items)
+        self.assertEqual(output, expected)
+
+
+class OutputWarningTest(testcase.BaseTestCase):
+    @params(
+             ('no line',
+              [],
+              ''
+              ),
+             ('one line',
+              ['1'],
+              '1' + os.linesep
+              ),
+             ('two lines',
+              ['1', '2'],
+              '1' + os.linesep + '2' + os.linesep
+              ),)
+    def test_one_line(self, _, items, expected):
+        fun = commandline.output_warnings
         output = run_output_command(fun, items)
         self.assertEqual(output, expected)
 

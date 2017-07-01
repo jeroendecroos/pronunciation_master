@@ -9,9 +9,9 @@ Feature: Get pronunciation examples for language XXX
             | key | value |
 
 
-    Scenario: specific language
+    Scenario: maximum words to try
         Given I have the language "Dutch"
-        Given I want to try maximum "1" words
+        Given I want to try maximum "2" words
         When I ask for pronunciation examples
         Then I see the following in the dict-list:
             | key | value |
@@ -20,6 +20,22 @@ Feature: Get pronunciation examples for language XXX
             | key | value |
             | v   | van   |
 
+    Scenario: warning not enough minimum examples
+        Given I have the language "Dutch"
+        Given I want to get minimum "1" examples
+        Given I want to try maximum "1" words
+        When I ask for pronunciation examples
+        Then I "do" see the warning message "Couldn't find enough examples (1) for 'j'"
+
+    Scenario: minimum examples found for letter
+        Given I have the language "Dutch"
+        Given I want to get minimum "1" examples
+        Given I want to try maximum "2" words
+        When I ask for pronunciation examples
+        Then I see the following in the dict-list:
+            | key | value |
+            | j   | je    |
+        Then I "don't" see the warning message "Couldn't find enough examples (1) for 'j'"
 
     Scenario: Bad language
         Given I have the language "unknown"
