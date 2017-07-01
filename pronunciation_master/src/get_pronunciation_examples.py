@@ -120,7 +120,7 @@ class DataGetters(object):
     pronunciations = staticmethod(get_pronunciations.get_pronunciations)
 
 
-def get_pronunciation_examples(language, max_words=1000):
+def get_pronunciation_examples(language, max_words=10):
     """ get the pronunciation examples for a certain language
     Arguments:
         Language = target language
