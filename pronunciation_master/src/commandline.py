@@ -36,6 +36,12 @@ class ArgumentParser(argparse.ArgumentParser):
             required=False, default=0, type=int,
             help='stop searching when minimum amount is reached')
 
+    def add_maximum_examples(self):
+        self.add_argument(
+            '--maximum_examples', dest='maximum_examples',
+            required=False, default=5, type=int,
+            help='dont list more examples')
+
     def add_arguments_by_name(self, *args):
         for argument in args:
             method_name = 'add_'+argument

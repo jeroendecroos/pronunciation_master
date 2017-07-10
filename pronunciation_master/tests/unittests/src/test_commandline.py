@@ -35,6 +35,12 @@ class ArgumentParserTest(testcase.BaseTestCase):
         args = parser.parse_args(['--minimum_examples', '1'])
         self.assertEqual(args.minimum_examples, 1)
 
+    def test_add_maximum_examples(self):
+        parser = commandline.ArgumentParser()
+        parser.add_maximum_examples()
+        args = parser.parse_args(['--maximum_examples', '1'])
+        self.assertEqual(args.maximum_examples, 1)
+
     def test_add_arguments_by_name(self):
         parser = commandline.ArgumentParser()
         parser.add_arguments_by_name("word")

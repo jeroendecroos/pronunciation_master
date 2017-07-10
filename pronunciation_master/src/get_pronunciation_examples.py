@@ -164,10 +164,12 @@ if __name__ == '__main__':
             description,
             extra_arguments=[
                 'maximum_words_to_try',
-                'minimum_examples'])
+                'minimum_examples',
+                'maximum_examples'])
     pronunciation_examples = get_pronunciation_examples(
         args.language,
         max_words=args.maximum_words_to_try,
+        maximum_examples=args.maximum_examples,
         minimum_examples=args.minimum_examples)
     not_reached_messages = not_enough_examples_warnings(
             pronunciation_examples, args.minimum_examples)

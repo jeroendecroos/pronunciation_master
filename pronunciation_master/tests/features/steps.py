@@ -29,6 +29,10 @@ def given_i_want_to_get_minimum_X_examples(_, minimum_examples):
     world.minimum_examples = minimum_examples
 
 
+@step(u'I want to get maximum "(.*)" examples')
+def given_i_want_to_get_maximum_X_examples(_, maximum_examples):
+    world.maximum_examples = maximum_examples
+
 @step
 def ask_for_its_frequency_list(_):
     _external_program_runner(
@@ -87,7 +91,7 @@ def check_dict(step):
     tests = _transform_lettuce_hashes_into_dict(step.hashes)
     for test_key, test_values in tests.iteritems():
         for value in test_values:
-            assert value in world.stdout[test_key]
+            assert value in world.stdout[test_key], (value, test_key, world.stdout[test_key])
 
 
 @step('I don\'t see the following in the dict-list')
@@ -100,7 +104,7 @@ def check_negative_dict(step):
 
 @step('Then I see the error message "(.*)"')
 def check_error_message(_, error_message):
-    assert error_message in world.stderr
+    assert error_message in world.stderr, world.stderr
 
 
 @step('Then I "(.*)" see the warning message "(.*)"')
@@ -159,5 +163,5 @@ def _stdout_dict_parser(stdout):
         if phoneme in new_dict:
             error_template = "we have a double entry for '{}' in the output"
             raise Exception(error_template.format(phoneme))
-        new_dict[phoneme] = pronunciations
+        new_dict[phoneme] = [l.strip() for l in pronunciations]
     return new_dict
