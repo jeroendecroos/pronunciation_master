@@ -8,3 +8,4 @@ virtualenv
 pip install -U pip setuptools  
 pip install -r requirements.txt  
 
+sudo service mongod start
