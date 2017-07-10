@@ -33,6 +33,7 @@ def given_i_want_to_get_minimum_X_examples(_, minimum_examples):
 def given_i_want_to_get_maximum_X_examples(_, maximum_examples):
     world.maximum_examples = maximum_examples
 
+
 @step
 def ask_for_its_frequency_list(_):
     _external_program_runner(
@@ -91,7 +92,8 @@ def check_dict(step):
     tests = _transform_lettuce_hashes_into_dict(step.hashes)
     for test_key, test_values in tests.iteritems():
         for value in test_values:
-            assert value in world.stdout[test_key], (value, test_key, world.stdout[test_key])
+            debug_text = (value, test_key, world.stdout[test_key])
+            assert value in world.stdout[test_key], debug_text
 
 
 @step('I don\'t see the following in the dict-list')
@@ -99,7 +101,8 @@ def check_negative_dict(step):
     tests = _transform_lettuce_hashes_into_dict(step.hashes)
     for test_key, test_values in tests.iteritems():
         for value in test_values:
-            assert value not in world.stdout[test_key]
+            debug_text = (value, test_key, world.stdout[test_key])
+            assert value not in world.stdout[test_key], debug_text
 
 
 @step('Then I see the error message "(.*)"')
