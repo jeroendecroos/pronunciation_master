@@ -24,6 +24,16 @@ def given_i_want_to_try_maximum_N_words(_, maximum_words_to_try):
     world.maximum_words_to_try = maximum_words_to_try
 
 
+@step("Given There is the database '(.*)'")
+def given_there_is_the_database(_, database_name):
+    pass
+
+
+@step("Given There is not the database '(.*)'")
+def given_there_is_not_the_database(_, database_name):
+    pass
+
+
 @step(u'I want to get minimum "(.*)" examples')
 def given_i_want_to_get_minimum_X_examples(_, minimum_examples):
     world.minimum_examples = minimum_examples
@@ -72,6 +82,11 @@ def ask_for_its_pronunciations(_):
         ['language', 'word'],
         _stdout_list_parser
         )
+
+
+@step('ask to create an empty database "(.*)"')
+def ask_to_create_an_empty_database(_, database_name):
+    pass
 
 
 @step('I see the following at the top')
