@@ -1,12 +1,19 @@
-import os
-import itertools
 import collections
+import contextlib
+import itertools
+import json
+import os
 import re
+import sqlalchemy
+import sqlalchemy_utils
 
 from lettuce import world, step
 
 import testlib.project_vars
 import testlib.testrun
+
+
+DB_CONFIG_FILEPATH = os.path.join(testlib.project_vars.ASSETS_DIR, 'db_config.test.json')
 
 
 @step('Given I have the language "(.*)"')
@@ -24,14 +31,20 @@ def given_i_want_to_try_maximum_N_words(_, maximum_words_to_try):
     world.maximum_words_to_try = maximum_words_to_try
 
 
-@step("Given There is the database '(.*)'")
+@step("Given there is the database '(.*)'")
 def given_there_is_the_database(_, database_name):
-    pass
+    engine = database_engine(database_name)
+    if not sqlalchemy_utils.database_exists(engine.url):
+        sqlalchemy_utils.create_database(engine.url)
+    world.database = database_name
 
 
-@step("Given There is not the database '(.*)'")
+@step("Given there is not the database '(.*)'")
 def given_there_is_not_the_database(_, database_name):
-    pass
+    engine = database_engine(database_name)
+    if sqlalchemy_utils.database_exists(engine.url):
+        sqlalchemy_utils.drop_database(engine.url)
+    world.database = database_name
 
 
 @step(u'I want to get minimum "(.*)" examples')
@@ -80,19 +93,33 @@ def ask_for_its_pronunciations(_):
     _external_program_runner(
         'get_pronunciations.py',
         ['language', 'word'],
-        _stdout_list_parser
         )
 
 
 @step('ask to create an empty database "(.*)"')
 def ask_to_create_an_empty_database(_, database_name):
-    pass
+    world.config = DB_CONFIG_FILEPATH
+    _external_program_runner(
+        'store_data.py',
+        ['config'],
+        )
 
 
 @step('I see the following at the top')
 def check_list(step):
     to_check_list = step.multiline.split('\n')
     assert to_check_list == world.stdout
+
+
+@step('I see the following tables in the database')
+def check_tables_database(step):
+    engine = database_engine(world.database)
+    metadata = sqlalchemy.MetaData()
+    metadata.reflect(engine)
+    tables = [table.name for table in metadata.tables.values()]
+    to_check_list = step.multiline.split('\n')
+    for value in to_check_list:
+        assert value in tables, (value, tables)
 
 
 @step('I see the following in the list')
@@ -143,14 +170,14 @@ def check_warning_message(_, in_log, warning_message):
 ############################
 
 
-def _external_program_runner(program, arguments, parser):
+def _external_program_runner(program, arguments, parser=None):
     arguments = {'--{}'.format(a): getattr(world, a)
                  for a in arguments if hasattr(world, a)}
     arguments = list(itertools.chain.from_iterable(arguments.items()))
     path = os.path.join(testlib.project_vars.SRC_DIR, program)
     stdout, stderr, _ = testlib.testrun.run_program(path, arguments)
     world.stdout_warnings, world.stderr = _seperate_warning_lines(stderr)
-    world.stdout = parser(stdout)
+    world.stdout = parser(stdout) if parser else stdout
 
 
 def _transform_lettuce_hashes_into_dict(hashes):
@@ -183,3 +210,15 @@ def _stdout_dict_parser(stdout):
             raise Exception(error_template.format(phoneme))
         new_dict[phoneme] = [l.strip() for l in pronunciations]
     return new_dict
+
+
+def database_engine(database_name):
+    '''Returns a connection and a metadata object'''
+    with open(DB_CONFIG_FILEPATH) as json_data_file:
+        DB_CONFIG_DICT = json.load(json_data_file)
+    DB_CONN_FORMAT = "postgresql://{user}:{password}@{host}:{port}/{database}"
+    DB_CONN_URI_DEFAULT = (DB_CONN_FORMAT.format(
+         database=database_name,
+         **DB_CONFIG_DICT
+    ))
+    return sqlalchemy.create_engine(DB_CONN_URI_DEFAULT, client_encoding='utf8')

@@ -1,14 +1,49 @@
-import unittest
 from nose2.tools import params
-import mock
 
 from pronunciation_master.tests.testlib import testcase
-from pronunciation_master.src import store_data
+from pronunciation_master.src import language_codes
 
 
-class SomethingTest(testcase.BaseTestCase):
-    pass
+class LanguageCodeTest(testcase.BaseTestCase):
+    def setUp(self):
+        self.fun = language_codes.LanguageCodes.map
+
+    def test_for_unknown_language(self):
+        with self.assertRaises(ValueError):
+            self.fun('unknownlanguages')
 
 
-if __name__ == '__main__':
-    unittest.main()
+class HermitDaveLanguageCodeTest(LanguageCodeTest):
+    def setUp(self):
+        self.fun = language_codes.HermitDave.map
+
+    @params(('dutch', 'nl'),
+            ('Dutch', 'nl'),
+            ('aragonese', 'an'),
+            )
+    def test_language(self, language, code):
+        self.assertEqual(self.fun(language), code)
+
+
+class PhoibeLanguageCodeTest(LanguageCodeTest):
+    def setUp(self):
+        self.fun = language_codes.Phoibe.map
+
+    @params(('dutch', 'nld'),
+            ('Dutch', 'nld'),
+            ('aragonese', 'arg'),
+            )
+    def test_language(self, language, code):
+        self.assertEqual(self.fun(language), code)
+
+
+class WiktionaryLanguageCodeTest(LanguageCodeTest):
+    def setUp(self):
+        self.fun = language_codes.Wiktionary.map
+
+    @params(('dutch', 'dutch'),
+            ('Dutch', 'dutch'),
+            ('aragonese', 'aragonese'),
+            )
+    def test_language(self, language, code):
+        self.assertEqual(self.fun(language), code)

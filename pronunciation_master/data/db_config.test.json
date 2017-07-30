@@ -1,0 +1,7 @@
+{
+    "user": "tester",
+    "password": "nopass",
+    "host": "localhost",
+    "port": 5432
+}
+
