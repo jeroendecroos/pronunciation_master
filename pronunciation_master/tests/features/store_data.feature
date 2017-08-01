@@ -7,7 +7,7 @@ Feature: Store the different data into a database
         Then I see the following tables in the database:
             """
             phonemes
-            frequency_lists
+            word_frequencies
             pronunciations
             """
 

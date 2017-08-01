@@ -33,7 +33,7 @@ def given_i_want_to_try_maximum_N_words(_, maximum_words_to_try):
 
 @step("Given there is the database '(.*)'")
 def given_there_is_the_database(_, database_name):
-    engine = database_engine(database_name)
+    engine = _database_engine(DB_CONFIG_FILEPATH)
     if not sqlalchemy_utils.database_exists(engine.url):
         sqlalchemy_utils.create_database(engine.url)
     world.database = database_name
@@ -41,7 +41,7 @@ def given_there_is_the_database(_, database_name):
 
 @step("Given there is not the database '(.*)'")
 def given_there_is_not_the_database(_, database_name):
-    engine = database_engine(database_name)
+    engine = _database_engine(DB_CONFIG_FILEPATH)
     if sqlalchemy_utils.database_exists(engine.url):
         sqlalchemy_utils.drop_database(engine.url)
     world.database = database_name
@@ -98,10 +98,11 @@ def ask_for_its_pronunciations(_):
 
 @step('ask to create an empty database "(.*)"')
 def ask_to_create_an_empty_database(_, database_name):
-    world.config = DB_CONFIG_FILEPATH
+    world.db_config = DB_CONFIG_FILEPATH
+    world.which_table = 'create_empty'
     _external_program_runner(
         'store_data.py',
-        ['config'],
+        ['db_config', 'which_table'],
         )
 
 
@@ -113,7 +114,7 @@ def check_list(step):
 
 @step('I see the following tables in the database')
 def check_tables_database(step):
-    engine = database_engine(world.database)
+    engine = _database_engine(DB_CONFIG_FILEPATH)
     metadata = sqlalchemy.MetaData()
     metadata.reflect(engine)
     tables = [table.name for table in metadata.tables.values()]
@@ -212,13 +213,12 @@ def _stdout_dict_parser(stdout):
     return new_dict
 
 
-def database_engine(database_name):
+def _database_engine(db_config):
     '''Returns a connection and a metadata object'''
-    with open(DB_CONFIG_FILEPATH) as json_data_file:
+    with open(db_config) as json_data_file:
         DB_CONFIG_DICT = json.load(json_data_file)
     DB_CONN_FORMAT = "postgresql://{user}:{password}@{host}:{port}/{database}"
     DB_CONN_URI_DEFAULT = (DB_CONN_FORMAT.format(
-         database=database_name,
          **DB_CONFIG_DICT
     ))
     return sqlalchemy.create_engine(DB_CONN_URI_DEFAULT, client_encoding='utf8')
