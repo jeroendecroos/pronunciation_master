@@ -106,6 +106,20 @@ def ask_to_create_an_empty_database(_, database_name):
         )
 
 
+@step(u'When I ask to store the "(.*)"')
+def when_i_ask_to_store_its_data(_, which_table):
+    world.db_config = DB_CONFIG_FILEPATH
+    world.which_table = which_table
+    _external_program_runner(
+        'store_data.py',
+        arguments = [
+            'db_config',
+            'which_table',
+            'language',
+            ],
+        )
+
+
 @step('I see the following at the top')
 def check_list(step):
     to_check_list = step.multiline.split('\n')
@@ -171,7 +185,7 @@ def check_warning_message(_, in_log, warning_message):
 ############################
 
 
-def _external_program_runner(program, arguments, parser=None):
+def _external_program_runner(program, arguments=tuple(), parser=None):
     arguments = {'--{}'.format(a): getattr(world, a)
                  for a in arguments if hasattr(world, a)}
     arguments = list(itertools.chain.from_iterable(arguments.items()))
