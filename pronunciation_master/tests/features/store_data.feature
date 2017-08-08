@@ -23,10 +23,10 @@ Feature: Store the different data into a database
         When I ask to store the "<which_table>"
         Then I see the error message "Language 'unknown' is not known"
         Examples:
-        | which_table    |
-        | phonemes       |
-        | frequent_words |
-        | pronunciations |
+        | which_table      |
+        | phonemes         |
+        | word_frequencies |
+        | pronunciations   |
 
 
     Scenario: Store phonemes
@@ -49,11 +49,12 @@ Feature: Store the different data into a database
         | het  | ɦɛt      | ɦ,ɛ,t         |
         | het  | ət       | ə,t           |
 
+
     Scenario: Store frequencies
         Given I have the language "dutch"
         When I ask to create an empty database "pronunciation_master_test"
         When I ask to store the "word_frequencies"
-        Then I find the following in the table "word_frequencies":
+        Then I find the following in the table "word_frequencies"
         | word | ranking  | occurances    |
         | ik   | 1        | 0             |
         | je   | 2        | 0             |

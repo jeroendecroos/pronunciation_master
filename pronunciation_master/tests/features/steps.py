@@ -127,7 +127,7 @@ def check_list(step):
 
 
 @step('I see the following tables in the database')
-def check_tables_database(step):
+def check_tables_database(_):
     engine = _database_engine(DB_CONFIG_FILEPATH)
     metadata = sqlalchemy.MetaData()
     metadata.reflect(engine)
@@ -135,6 +135,21 @@ def check_tables_database(step):
     to_check_list = step.multiline.split('\n')
     for value in to_check_list:
         assert value in tables, (value, tables)
+
+
+@step('I find the following in the table "(.*)"')
+def in_the_table(step, table_name):
+    engine = _database_engine(DB_CONFIG_FILEPATH)
+    columns = ', '.join("'{}'".format(x)
+                        for x in step.hashes[0].keys())
+    with engine.connect() as connection:
+        statement = sqlalchemy.sql.text(
+                " SELECT " + columns +
+                " FROM " + table_name +
+                " WHERE language='"+world.language+"';"
+                )
+        results = connection.execute(statement)
+    assert results == step.hashes
 
 
 @step('I see the following in the list')
