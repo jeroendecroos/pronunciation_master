@@ -5,6 +5,8 @@ import sys
 import argparse
 import logging
 
+import resources
+
 logging.basicConfig()
 
 
@@ -14,15 +16,15 @@ class ArgumentParser(argparse.ArgumentParser):
     def __init__(self, *args, **kwargs):
         super(ArgumentParser, self).__init__(*args, **kwargs)
 
-    def add_language(self):
+    def add_language(self, required=True):
         self.add_argument(
-            '--language', dest='language', required=True,
-            help='the language we want the pronuncations for')
+            '--language', dest='language', required=required,
+            help='the language we want the data for')
 
     def add_word(self):
         self.add_argument(
             '--word', dest='word', required=True,
-            help='the word we want the pronunciations for')
+            help='the word we want the pdata for')
 
     def add_maximum_words_to_try(self):
         self.add_argument(
@@ -41,6 +43,19 @@ class ArgumentParser(argparse.ArgumentParser):
             '--maximum_examples', dest='maximum_examples',
             required=False, default=5, type=int,
             help='dont list more examples')
+
+    def add_which_table(self):
+        self.add_argument(
+             '--which_table', dest='which_table',
+            required=True, default='create_empty',
+            choices=['pronunciations', 'phonemes', 'word_frequencies','create_empty'],
+            help='which table to fill')
+
+    def add_db_config(self):
+        self.add_argument(
+             '--db_config', dest='db_config',
+            required=True, default=resources.db_config,
+            help='configuration for database')
 
     def add_arguments_by_name(self, *args):
         for argument in args:
@@ -74,6 +89,14 @@ class LanguageAndWordInput(CommonArguments):
     def _add_arguments(parser):
         parser.add_language()
         parser.add_word()
+
+
+class LanguageDatabaseInput(CommonArguments):
+    @staticmethod
+    def _add_arguments(parser):
+        parser.add_language(required=False)
+        parser.add_which_table()
+        parser.add_db_config()
 
 
 def output_warnings(warnings, out=None):

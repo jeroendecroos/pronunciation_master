@@ -57,3 +57,4 @@ wiktionaryparser==0.0.3
 wrapt==1.10.8
 zope.interface==4.3.3
 sqlalchemy
+testing.postgresql

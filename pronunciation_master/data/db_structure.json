@@ -1,0 +1,20 @@
+{
+     "phonemes": {
+                  "language": {
+                               "type": "String(60)",
+                               "kwargs": {"nullable": false}
+                              }
+                 },
+     "word_frequencies": {
+                  "language": {
+                               "type": "String(60)",
+                               "kwargs": {"nullable": false}
+                              }
+                 },
+     "pronunciations": {
+                  "language": {
+                               "type": "String(60)",
+                               "kwargs": {"nullable": false}
+                              }
+                 }
+}
