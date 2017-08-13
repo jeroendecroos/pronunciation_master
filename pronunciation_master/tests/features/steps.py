@@ -127,7 +127,7 @@ def check_list(step):
 
 
 @step('I see the following tables in the database')
-def check_tables_database(_):
+def check_tables_database(step):
     engine = _database_engine(DB_CONFIG_FILEPATH)
     metadata = sqlalchemy.MetaData()
     metadata.reflect(engine)
