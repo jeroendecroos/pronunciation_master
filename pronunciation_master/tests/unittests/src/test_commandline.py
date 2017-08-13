@@ -11,35 +11,20 @@ class ArgumentParserTest(testcase.BaseTestCase):
     def test_init(self):
         commandline.ArgumentParser('description')
 
-    def test_add_language(self):
+    @params(
+        ('language', 'd', 'd'),
+        ('word', 'd', 'd'),
+        ('maximum_words_to_try', '1', 1),
+        ('minimum_examples', '1', 1),
+        ('maximum_examples', '1', 1),
+        ('which_table', 'pronunciations', 'pronunciations'),
+        ('db_config', 'blabla', 'blabla'),
+        )
+    def test_add_parameter(self, parameter_name, input_value, return_value):
         parser = commandline.ArgumentParser()
-        parser.add_language()
-        args = parser.parse_args(['--language', 'd'])
-        self.assertEqual(args.language, 'd')
-
-    def test_add_word(self):
-        parser = commandline.ArgumentParser()
-        parser.add_word()
-        args = parser.parse_args(['--word', 'd'])
-        self.assertEqual(args.word, 'd')
-
-    def test_add_maximum_words_to_try(self):
-        parser = commandline.ArgumentParser()
-        parser.add_maximum_words_to_try()
-        args = parser.parse_args(['--maximum_words_to_try', '1'])
-        self.assertEqual(args.maximum_words_to_try, 1)
-
-    def test_add_minimum_examples(self):
-        parser = commandline.ArgumentParser()
-        parser.add_minimum_examples()
-        args = parser.parse_args(['--minimum_examples', '1'])
-        self.assertEqual(args.minimum_examples, 1)
-
-    def test_add_maximum_examples(self):
-        parser = commandline.ArgumentParser()
-        parser.add_maximum_examples()
-        args = parser.parse_args(['--maximum_examples', '1'])
-        self.assertEqual(args.maximum_examples, 1)
+        getattr(parser, "add_"+parameter_name)()
+        args = parser.parse_args(['--'+parameter_name, input_value])
+        self.assertEqual(getattr(args, parameter_name), return_value)
 
     def test_add_arguments_by_name(self):
         parser = commandline.ArgumentParser()
