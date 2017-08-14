@@ -75,11 +75,27 @@ class StoreDataTest(StoreDataBaseTest):
         args.which_table = "create_empty"
         store_data._store_data(args)
 
+    @mock.patch("get_phonemes.get_phonemes", mock.Mock(return_value=[str(x) for x in range(10)]))
+    def test_store_phonemes(self):
+        # preparing the db
+        config_file = self._create_test_config(None)
+        db = store_data.create_engine(config_file)
+        try:
+             store_data._create_superlevel(db)
+        except RuntimeError:
+             pass
+        store_data._create_empty_tables(db, store_data.resources.db_structure)
+        # running the store_data
+        args = self._get_args()
+        args.db_config = config_file
+        args.which_table = "phonemes"
+        store_data._store_data(args)
 
-class DatabaseTest(StoreDataTest):
+
+class DatabaseTest(StoreDataBaseTest):
     def test_init(self):
         config_file = self._create_test_config()
-        store_data.Database(config_file)
+        store_data.create_engine(config_file)
 
     @params(('no_tables', {}),
             ('one_table', {'blabla': {'id': {'type': 'Integer'}}}),
@@ -88,15 +104,26 @@ class DatabaseTest(StoreDataTest):
                 'second': {'id': {'type': 'Integer'}}
                  }),
             )
-    @mock.patch("pronunciation_master.src.store_data.Database._create_superlevel")
-    def test_create_empty_database(self, _, structure, mock):
-        """ currently mocking create superlevel, because can't find the tables in different db with testing.postgresql
-        """
-        config_file = self._create_test_config(None)
-        db = store_data.Database(config_file)
+    def test_init_database(self, _, structure):
+        config_file = self._create_test_config()
+        db = store_data.create_engine(config_file)
         with tempfile.NamedTemporaryFile(delete=False) as db_structure_file:
             json.dump(structure, db_structure_file)
-        db.create_empty_database(db_structure_file.name)
+        store_data.init_database(db, db_structure_file.name)
+
+    @params(('no_tables', {}),
+            ('one_table', {'blabla': {'id': {'type': 'Integer'}}}),
+            ('two_tables', {
+                'first': {'id': {'type': 'Integer'}},
+                'second': {'id': {'type': 'Integer'}}
+                 }),
+            )
+    def test_create_empty_tables(self, _, structure):
+        config_file = self._create_test_config(None)
+        db = store_data.create_engine(config_file)
+        with tempfile.NamedTemporaryFile(delete=False) as db_structure_file:
+            json.dump(structure, db_structure_file)
+        store_data._create_empty_tables(db, db_structure_file.name)
         tables = self.execute("""
             SELECT table_name
             FROM information_schema.tables
@@ -108,8 +135,8 @@ class DatabaseTest(StoreDataTest):
 
     def test_create_superlevel(self):
         config_file = self._create_test_config()
-        db = store_data.Database(config_file)
-        db._create_superlevel()
+        db = store_data.create_engine(config_file)
+        store_data._create_superlevel(db)
         self.execute("CREATE TABLE hello(id int, value varchar(256))", nofetch=True)
         databases = self.execute("SELECT datname FROM pg_database;")
         database_names = set(x[0] for x in databases)
@@ -117,12 +144,12 @@ class DatabaseTest(StoreDataTest):
 
     def test_create_superlevel_failure(self):
         config_file = self._create_test_config(None)
-        db = store_data.Database(config_file)
+        db = store_data.create_engine(config_file)
         with self.assertRaises(RuntimeError):
-            db._create_superlevel()
+            store_data._create_superlevel(db)
 
 
-class TableTest(StoreDataTest):
+class TableTest(StoreDataBaseTest):
     def test_init(self):
         store_data.Table()
 
@@ -137,24 +164,11 @@ class TableTest(StoreDataTest):
                 'first': {'type': 'String'},
                  }),
             )
-
-    def test_from_config(self, _, config):
-        store_data.Table.from_config("myname", config)
-
-    @params(('one column', {
-                'first': {'type': 'Integer'}
-                }),
-            ('two_columns', {
-                'first': {'type': 'Integer'},
-                'second': {'type': 'Integer'}
-                 }),
-            )
-
-    def test_create_empty_table(self, _, config):
+    def test_from_config(self, _, structure):
         config_file = self._create_test_config(database=None)
-        db = store_data.Database(config_file)
-        table = store_data.Table.from_config("hello", config)
-        table.create_empty_table(db.engine)
+        db = store_data.create_engine(config_file)
+        table = store_data.Table.from_config("hello", structure, db)
+        table.create(db.engine)
         tables = self.execute("""
             SELECT table_name
             FROM information_schema.tables
@@ -162,3 +176,73 @@ class TableTest(StoreDataTest):
         """)
         table_names = set(x[0] for x in tables)
         self.assertTrue("hello" in table_names)
+
+    def test_add_data(self):
+        structure = {
+            'first': {'type': 'Integer'},
+            }
+        config_file = self._create_test_config(database=None)
+        db = store_data.create_engine(config_file)
+        table = store_data.Table.from_config("hello", structure, db)
+        table.create(db)
+        def iterator():
+            for x in range (10):
+                 yield {'first': x}
+        table.add_data(iterator())
+        rows = self.execute("""
+            SELECT *
+            FROM "hello"
+        """)
+        self.assertEqual(
+            [(x,) for x in range(10)],
+            rows,
+            )
+
+    def test_from_database(self):
+        structure = {
+            'first': {'type': 'Integer'},
+            'second': {'type': 'Integer'}
+            }
+        config_file = self._create_test_config(database=None)
+        db = store_data.create_engine(config_file)
+        table_ref = store_data.Table.from_config("hello", structure, db)
+        table_ref.create(db.engine)
+        table_target = store_data.Table.from_database("hello", db.engine)
+        self.assertEqual(table_ref.name, table_target.name)
+        self.assertEqual([x.name for x in table_ref.columns], [x.name for x in table_target.columns])
+
+
+
+class RowGeneratorTest(StoreDataBaseTest):
+    @params(('one value',
+                 (lambda x: x),
+                 ['count'],
+                 [{'language': 'bla', 'count': x} for x in range(10)]
+                 ),
+            ('tuple',
+                 (lambda x: (x, x**2)),
+                 ['count', 'count2'],
+                 [{'language': 'bla', 'count': x, 'count2': x**2} for x in range(10)]
+                 ),
+            ('dict',
+                 (lambda x: {'count': x, 'count2': x**2}),
+                 ['count', 'count2'],
+                 [{'language': 'bla', 'count': x, 'count2': x**2} for x in range(10)]
+                 ),
+            ('dict_reductor',
+                 (lambda x: {'count': x, 'count2': x**2}),
+                 ['count'],
+                 [{'language': 'bla', 'count': x} for x in range(10)]
+                 ),
+            )
+    def test_one_value(self, _, value_creator, column_names, expected_values):
+        class module:  # instead of mock, we mock directly with a class iso module
+            @staticmethod
+            def function(language):
+                for x in range(10):
+                    yield value_creator(x)
+        gen = store_data._row_generator(module, "function", column_names)
+        self.assertEqual(
+                [x for x in gen('bla')],
+                expected_values
+                )
