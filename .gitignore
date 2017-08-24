@@ -2,3 +2,4 @@
 *.swp
 *.coverage*
 *.log
+pronunciation_master/data/db_config.test.json
