@@ -140,16 +140,16 @@ def check_tables_database(step):
 @step('I find the following in the table "(.*)"')
 def in_the_table(step, table_name):
     engine = _database_engine(DB_CONFIG_FILEPATH)
-    columns = ', '.join("'{}'".format(x)
-                        for x in step.hashes[0].keys())
+    columns = ', '.join(step.hashes[0].keys())
     with engine.connect() as connection:
         statement = sqlalchemy.sql.text(
                 " SELECT " + columns +
                 " FROM " + table_name +
                 " WHERE language='"+world.language+"';"
                 )
-        results = connection.execute(statement)
-    assert results == step.hashes
+        results = [dict(x) for x in connection.execute(statement)]
+    for row in step.hashes:
+        assert row in results, (row, results)
 
 
 @step('I see the following in the list')
@@ -180,6 +180,11 @@ def check_negative_dict(step):
 @step('Then I see the error message "(.*)"')
 def check_error_message(_, error_message):
     assert error_message in world.stderr, world.stderr
+
+
+@step('Then I see the approximate error message "(.*)"')
+def check_error_message(_, error_message):
+    assert re.search(error_message, world.stderr), world.stderr
 
 
 @step('Then I "(.*)" see the warning message "(.*)"')

@@ -14,7 +14,7 @@ Feature: Store the different data into a database
     Scenario: do nothing when already database
         Given there is the database 'pronunciation_master_test'
         When I ask to create an empty database "pronunciation_master_test"
-        Then I see the error message "database 'pronunciation_master_test' already exists"
+        Then I see the approximate error message "database '.*pronunciation_master_test' already exists"
 
 
     Scenario: Bad language
@@ -34,7 +34,7 @@ Feature: Store the different data into a database
         When I ask to create an empty database "pronunciation_master_test"
         When I ask to store the "phonemes"
         Then I find the following in the table "phonemes":
-        | phonemes       |
+        | ipa            |
         | m              |
         | k              |
 

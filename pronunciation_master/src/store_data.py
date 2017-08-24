@@ -112,12 +112,13 @@ def _row_generator(module, function, column_names):
         for item in data_provider(language):
             if isinstance(item, dict):
                 assert len(set(column_names) - set(item.keys())) >= -1
-                row = {key: item[key] for key in column_names}
+                row = {key.lower(): item[key] for key in column_names}
             elif isinstance(item, (list, tuple)):
-                row = dict(itertools.izip(column_names, item))
+                sql_column_names = (x.lower() for x in column_names)
+                row = dict(itertools.izip(sql_column_names, item))
             else:
                 assert len(column_names) == 1
-                row = {column_names[0]: item}
+                row = {column_names[0].lower(): item}
             row['language'] = language
             yield row
     return run
@@ -131,10 +132,13 @@ def _store_data(args):
         init_database(database, resources.db_structure)
     else:
         row_generators = {
-            "phonemes": _row_generator(get_phonemes, 'get_phonemes', ['IPA'])
+            "phonemes": _row_generator(get_phonemes, 'get_phonemes', ['IPA']),
+            "word_frequencies": _row_generator(get_phonemes, 'get_phonemes', ['IPA']),
+            "pronunciations": _row_generator(get_phonemes, 'get_phonemes', ['IPA']),
             }
         table = Table.from_database(args.which_table, database)
-        table.add_data(row_generators[args.which_table](args.language))
+        row_generator = row_generators[args.which_table](args.language)
+        table.add_data(row_generator)
 
 
 if __name__ == '__main__':

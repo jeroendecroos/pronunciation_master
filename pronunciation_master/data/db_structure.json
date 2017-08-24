@@ -3,6 +3,10 @@
                   "language": {
                                "type": "String(60)",
                                "kwargs": {"nullable": false}
+                              },
+                  "ipa": {
+                               "type": "String(60)",
+                               "kwargs": {"nullable": false}
                               }
                  },
      "word_frequencies": {

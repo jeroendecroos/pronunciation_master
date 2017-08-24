@@ -75,7 +75,7 @@ class StoreDataTest(StoreDataBaseTest):
         args.which_table = "create_empty"
         store_data._store_data(args)
 
-    @mock.patch("get_phonemes.get_phonemes", mock.Mock(return_value=[str(x) for x in range(10)]))
+    @mock.patch("pronunciation_master.src.get_phonemes.get_phonemes", mock.Mock(return_value=[str(x) for x in range(10)]))
     def test_store_phonemes(self):
         # preparing the db
         config_file = self._create_test_config(None)
@@ -89,6 +89,7 @@ class StoreDataTest(StoreDataBaseTest):
         args = self._get_args()
         args.db_config = config_file
         args.which_table = "phonemes"
+        args.language = 'dutch'
         store_data._store_data(args)
 
 
