@@ -1,19 +1,20 @@
 from nose2.tools import params
 import mock
 import json
+import os
 import psycopg2
 import tempfile
 import testing.postgresql
 import unittest
 
-from pronunciation_master.tests.testlib import testcase
+from pronunciation_master.tests.testlib import testcase, project_vars
 from pronunciation_master.src import store_data
 
 
 PASSWORD = 'dog'
 
 def _project_config():
-    config_file = store_data.resources.db_config
+    config_file = os.path.join(project_vars.ASSETS_DIR, 'db_config.test.json')
     with open(config_file) as json_data_file:
         config = json.load(json_data_file)
     return config
@@ -75,20 +76,24 @@ class StoreDataTest(StoreDataBaseTest):
         args.which_table = "create_empty"
         store_data._store_data(args)
 
-    @mock.patch("pronunciation_master.src.get_phonemes.get_phonemes", mock.Mock(return_value=[str(x) for x in range(10)]))
-    def test_store_phonemes(self):
-        # preparing the db
-        config_file = self._create_test_config(None)
-        db = store_data.create_engine(config_file)
+    def _prepare_db(self):
+        self.config_file = self._create_test_config(None)
+        db = store_data.create_engine(self.config_file)
         try:
              store_data._create_superlevel(db)
         except RuntimeError:
              pass
         store_data._create_empty_tables(db, store_data.resources.db_structure)
-        # running the store_data
+
+    @mock.patch("pronunciation_master.src.get_phonemes.get_phonemes", mock.Mock(return_value=[str(x) for x in range(10)]))
+    def test_store_phonemes(self):
+        self._prepare_db()
+        self._run_store_data("phonemes")
+
+    def _run_store_data(self, which_table):
         args = self._get_args()
-        args.db_config = config_file
-        args.which_table = "phonemes"
+        args.db_config = self.config_file
+        args.which_table = which_table
         args.language = 'dutch'
         store_data._store_data(args)
 

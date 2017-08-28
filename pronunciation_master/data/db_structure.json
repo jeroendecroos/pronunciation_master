@@ -10,8 +10,20 @@
                               }
                  },
      "word_frequencies": {
+                  "word": {
+                               "type": "String(60)",
+                               "kwargs": {"nullable": false}
+                              },
                   "language": {
                                "type": "String(60)",
+                               "kwargs": {"nullable": false}
+                              },
+                  "ranking": {
+                               "type": "Integer",
+                               "kwargs": {"nullable": false}
+                              },
+                  "occurances": {
+                               "type": "Integer",
                                "kwargs": {"nullable": false}
                               }
                  },

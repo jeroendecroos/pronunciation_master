@@ -140,7 +140,8 @@ def check_tables_database(step):
 @step('I find the following in the table "(.*)"')
 def in_the_table(step, table_name):
     engine = _database_engine(DB_CONFIG_FILEPATH)
-    columns = ', '.join(step.hashes[0].keys())
+    hashes = _normalize_hashes(step.hashes)
+    columns = ', '.join(hashes[0].keys())
     with engine.connect() as connection:
         statement = sqlalchemy.sql.text(
                 " SELECT " + columns +
@@ -148,8 +149,20 @@ def in_the_table(step, table_name):
                 " WHERE language='"+world.language+"';"
                 )
         results = [dict(x) for x in connection.execute(statement)]
-    for row in step.hashes:
-        assert row in results, (row, results)
+    for row in hashes:
+        assert row in results, (results[:10], row)
+
+
+def _normalize_hashes(hashes):
+    def _normalize_dict(d):
+        new_d = {}
+        for key, value in d.iteritems():
+            if key.startswith('int:'):
+                key = key[len('int:'):]
+                value = int(value)
+            new_d[key] = value
+        return new_d
+    return [_normalize_dict(row) for row in hashes]
 
 
 @step('I see the following in the list')

@@ -55,7 +55,7 @@ Feature: Store the different data into a database
         When I ask to create an empty database "pronunciation_master_test"
         When I ask to store the "word_frequencies"
         Then I find the following in the table "word_frequencies"
-        | word | ranking  | occurances    |
-        | ik   | 1        | 0             |
-        | je   | 2        | 0             |
-        | het  | 3        | 0             |
+        | word | int:ranking | int:occurances |
+        | ik   | 1           | 8106228        |
+        | je   | 2           | 7305984        |
+        | het  | 3           | 5706767        |

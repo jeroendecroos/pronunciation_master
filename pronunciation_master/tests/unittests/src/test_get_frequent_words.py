@@ -1,7 +1,8 @@
-import unittest
-import tempfile
-import os
 import mock
+import os
+import StringIO
+import tempfile
+import unittest
 
 from pronunciation_master.tests.testlib import testcase
 from pronunciation_master.src import get_frequent_words
@@ -10,13 +11,14 @@ from pronunciation_master.src import get_frequent_words
 class GetFrequencyListFromFile(testcase.BaseTestCase):
     def setUp(self):
         _, self.temp_filepath = tempfile.mkstemp()
-        self.fun = get_frequent_words._get_frequency_list_from_file
+        self.fun = get_frequent_words._get_frequency_list_from_filestream
 
     def tearDown(self):
         os.remove(self.temp_filepath)
 
-    def test_word_freq_list(self):
-        freq_list = [
+
+    def _create_freq_list(self):
+        self.freq_list = [
             ('word1', 1),
             ('word2', 2),
             ('word3', 3),
@@ -28,23 +30,30 @@ class GetFrequencyListFromFile(testcase.BaseTestCase):
             ('word9', 9),
             ('word10', 10),
                 ]
-        words = [word for word, freq in freq_list]
+        self.words = [word for word, freq in self.freq_list]
         with open(self.temp_filepath, 'w') as temp_stream:
-            for word, freq in freq_list:
+            for word, freq in self.freq_list:
                 temp_stream.write('{}\t{}\n'.format(word, freq))
-        freq_list_answer = self.fun(self.temp_filepath)
-        self.assertEqual(freq_list_answer, words)
 
-    def test_empty_file(self):
-        open(self.temp_filepath, 'w').close()
-        with self.assertRaises(RuntimeError):
-            self.fun(self.temp_filepath)
+    def test_word_freq_list_extended(self):
+        self._create_freq_list()
+        with open(self.temp_filepath) as instream:
+            freq_list_answer = self.fun(instream, True)
+        ranked_list = [(word, i+1, freq) for i, (word, freq) in enumerate(self.freq_list)]
+        self.assertEqual(freq_list_answer, ranked_list)
+
+    def test_word_freq_list(self):
+        self._create_freq_list()
+        with open(self.temp_filepath) as instream:
+            freq_list_answer = self.fun(instream)
+        self.assertEqual(freq_list_answer, self.words)
 
     def test_empty_line_file(self):
         with open(self.temp_filepath, 'w') as temp_stream:
             temp_stream.write('\n')
         with self.assertRaises(RuntimeError):
-            self.fun(self.temp_filepath)
+            with open(self.temp_filepath) as instream:
+                self.fun(instream)
 
 
 class GetHermitdavePage(testcase.BaseTestCase):
@@ -62,7 +71,7 @@ class GetFrequencyList(testcase.BaseTestCase):
         data = mock.Mock()
         get_frequent_words.FrequencySources = data
         data.language_code = mock.Mock(side_effect=lambda x: x)
-        data.frequency_filestream = mock.Mock(return_value=['word 5\n'])
+        data.frequency_filestream = mock.Mock(return_value=StringIO.StringIO('word 5\n'))
         self.assertEqual(self.fun('dutch'), ['word'])
 
 

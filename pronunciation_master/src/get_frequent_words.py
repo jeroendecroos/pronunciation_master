@@ -8,7 +8,7 @@ import language_codes
 import commandline
 
 
-def get_frequency_list(language):
+def get_frequency_list(language, extended_return_value=False):
     """ returns a list of the most frequent words of a language
     the frequency lists are processede starting from the list hermitdave made
     see: https://github.com/hermitdave/FrequencyWords/
@@ -20,8 +20,8 @@ def get_frequency_list(language):
         List        most frequent words in frequency-order
     """
     _language_code = FrequencySources.language_code(language)
-    file_pointer = FrequencySources.frequency_filestream(_language_code)
-    return _get_frequency_list_from_filestream(file_pointer)
+    filestream = FrequencySources.frequency_filestream(_language_code)
+    return _get_frequency_list_from_filestream(filestream, extended_return_value)
 
 
 def _get_hermitdave_page(language_code):
@@ -44,26 +44,15 @@ class FrequencySources(object):
     frequency_filestream = staticmethod(_get_hermitdave_page)
 
 
-def _get_frequency_list_from_file(file_pointer):
-    """Take a pointer to a file and get the frequency list from it
+def _get_frequency_list_from_filestream(filestream, extended_return_value=False):
+    """Take a filestream and get the frequency list from it
+    if extended_return -> list of (word, ranking, occurances)
     """
-    with open(file_pointer) as instream:
-        freq_list = _get_frequency_list_from_filestream(instream)
+    freq_list = (line.strip().split() for line in filestream if line.strip())
+    freq_list = [word if not extended_return_value else (word, i+1, int(freq))
+                 for i, (word, freq) in enumerate(freq_list)]
     if not freq_list:
-        mes = 'no frequency list found in {}'.format(file_pointer)
-        raise RuntimeError(mes)
-    return freq_list
-
-
-def _get_frequency_list_from_filestream(instream):
-    """Take a file stream and get the frequency list from it
-    """
-    freq_list = []
-    for line in instream:
-        if not line.strip():
-            break
-        word, freq = line.strip().split()
-        freq_list.append(word)
+        raise RuntimeError("No entries found for creating a frequency list")
     return freq_list
 
 

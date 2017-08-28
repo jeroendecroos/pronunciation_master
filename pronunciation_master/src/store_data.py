@@ -106,10 +106,16 @@ class Table(sqlalchemy.Table):
                      i.execute(*rows)
 
 
-def _row_generator(module, function, column_names):
+def _row_generator(module, function, column_names, **kwargs):
+    """Will create a generator of the data returned by function in a module
+    the generator will return for each value in the returned data,
+        a dictionary with keys, column_names with and added column language
+    the len(column_names) < number of 'columns' returend bz the function
+    the function can return any iterable of single-values, lists, tupless or dicts
+    """
     data_provider = getattr(module, function)
     def run(language):
-        for item in data_provider(language):
+        for item in data_provider(language, **kwargs):
             if isinstance(item, dict):
                 assert len(set(column_names) - set(item.keys())) >= -1
                 row = {key.lower(): item[key] for key in column_names}
@@ -133,7 +139,7 @@ def _store_data(args):
     else:
         row_generators = {
             "phonemes": _row_generator(get_phonemes, 'get_phonemes', ['IPA']),
-            "word_frequencies": _row_generator(get_phonemes, 'get_phonemes', ['IPA']),
+            "word_frequencies": _row_generator(get_frequent_words, 'get_frequency_list', ['word', 'ranking', 'occurances'], extended_return_value=True),
             "pronunciations": _row_generator(get_phonemes, 'get_phonemes', ['IPA']),
             }
         table = Table.from_database(args.which_table, database)
