@@ -57,18 +57,6 @@ class PronunciationExamplesTest(testcase.BaseTestCase):
         self.assertDictEqual(dict(examples), expected)
 
     @params(
-            ('one phoneme', ['a'], 1),
-            ('two phonemes', ['ab'], 1),
-            ('two pronounciations', ['a', 'b'], 2),
-            ('one right, one wrong', ['a', 'x'], 1),
-            ('one right, one partialy wrong', ['ab', 'ax'], 1),
-            )
-    def test_IPA_pronunciations(self, _, entry, number_created):
-        examples = self.test_class(available_phonemes)
-        IPAs = [x for x in examples._IPA_pronunciations(entry)]
-        self.assertEqual(len(IPAs), number_created)
-
-    @params(
             ('less', [('1', 'a')], 1),
             ('equal', [('1', 'a'), ('2', 'a')], 2),
             ('more', [('1', 'a'), ('2', 'a'), ('3', 'a')], 2),
@@ -202,6 +190,18 @@ class PronunciationFactoryTest(testcase.BaseTestCase):
         factory = get_pronunciation_examples.PronunciationFactory(['a'])
         with self.assertRaises(ValueError):
             factory.create('bbb')
+
+    @params(
+            ('one phoneme', ['a'], 1),
+            ('two phonemes', ['ab'], 1),
+            ('two pronounciations', ['a', 'b'], 2),
+            ('one right, one wrong', ['a', 'x'], 1),
+            ('one right, one partialy wrong', ['ab', 'ax'], 1),
+            )
+    def test_create_multiple(self, _, entry, number_created):
+        factory = get_pronunciation_examples.PronunciationFactory(available_phonemes)
+        IPAs = [x for x in factory.create_multiple(entry)]
+        self.assertEqual(len(IPAs), number_created)
 
 
 class PronunciationTest(testcase.BaseTestCase):

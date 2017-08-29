@@ -8,6 +8,14 @@ import get_pronunciations
 import get_frequent_words
 
 
+class DataGetters(object):
+    """ datastructure to hold different functions to get data
+    """
+    phonemes = staticmethod(get_phonemes.get_phonemes)
+    words = staticmethod(get_frequent_words.get_frequency_list)
+    pronunciations = staticmethod(get_pronunciations.get_pronunciations)
+
+
 def _all_have_same_length(items):
     example = next(iter(items))
     return all(len(item) == len(example) for item in items)
@@ -32,6 +40,13 @@ class PronunciationFactory(object):
 
     def create(self, pronunciation):
         return Pronunciation(pronunciation, self.phonemes)
+
+    def create_multiple(self, pronunciations):
+        for pronunciation in pronunciations:
+            try:
+                yield self.create(pronunciation)
+            except ValueError:
+                continue
 
 
 class Pronunciation(object):
@@ -70,6 +85,21 @@ class Pronunciation(object):
         return None
 
 
+def get_processed_ipas(language, max_words=15):
+    phonemes = DataGetters.phonemes(language)
+    frequent_words = DataGetters.words(language)
+    factory = PronunciationFactory(phonemes)
+    for word in frequent_words[:max_words]:
+        pronunciations = DataGetters.pronunciations(language, word)
+        if not pronunciations:
+            continue
+        pronunciations = list(factory.create_multiple(pronunciations))
+        for pronunciation in pronunciations:
+            pronunciation.word = word
+            pronunciation.IPA_pronunciation = ','.join(pronunciation.IPA_pronunciation)
+            yield pronunciation
+
+
 class PronunciationExamples(object):
     def __init__(self, phonemes, minimum_examples=0, maximum_examples=5):
         self._examples = {key: [] for key in phonemes}
@@ -84,7 +114,7 @@ class PronunciationExamples(object):
                 ('ab', 'ac'-> only phoneme 'a')
         unequal lengths 'abc', 'bc' will be all ignored till better algorithm
         """
-        pronunciations_IPA = list(self._IPA_pronunciations(pronunciations))
+        pronunciations_IPA = list(self._factory.create_multiple(pronunciations))
         if pronunciations_IPA and _all_have_same_length(pronunciations_IPA):
             phonemes = _get_equal_phonemes(pronunciations_IPA)
             for phoneme in phonemes:
@@ -98,13 +128,6 @@ class PronunciationExamples(object):
             return False
         return all(len(v) >= self.minimum_examples
                    for v in self._examples.values())
-
-    def _IPA_pronunciations(self, pronunciations):
-        for p in pronunciations:
-            try:
-                yield self._factory.create(p)
-            except ValueError:
-                continue
 
     def __getitem__(self, name):
         return self._examples[name]
@@ -120,14 +143,6 @@ class PronunciationExamples(object):
 
     def values(self):
         return self._examples.values()
-
-
-class DataGetters(object):
-    """ datastructure to hold different functions to get data
-    """
-    phonemes = staticmethod(get_phonemes.get_phonemes)
-    words = staticmethod(get_frequent_words.get_frequency_list)
-    pronunciations = staticmethod(get_pronunciations.get_pronunciations)
 
 
 def get_pronunciation_examples(language, max_words=10, **kwargs):

@@ -8,6 +8,7 @@ import resources
 import get_frequent_words
 import get_phonemes
 import get_pronunciations
+import get_pronunciation_examples
 
 
 def _load_json(filepath):
@@ -122,14 +123,15 @@ def _row_generator(module, function, column_names, **kwargs):
             elif isinstance(item, (list, tuple)):
                 sql_column_names = (x.lower() for x in column_names)
                 row = dict(itertools.izip(sql_column_names, item))
-            else:
+            elif isinstance(item, (int, basestring)):
                 assert len(column_names) == 1
                 row = {column_names[0].lower(): item}
+            else:
+                assert all(hasattr(item, name) for name in column_names)
+                row = {name.lower(): getattr(item, name) for name in column_names}
             row['language'] = language
             yield row
     return run
-
-
 
 
 def _store_data(args):
@@ -140,7 +142,7 @@ def _store_data(args):
         row_generators = {
             "phonemes": _row_generator(get_phonemes, 'get_phonemes', ['IPA']),
             "word_frequencies": _row_generator(get_frequent_words, 'get_frequency_list', ['word', 'ranking', 'occurances'], extended_return_value=True),
-            "pronunciations": _row_generator(get_phonemes, 'get_phonemes', ['IPA']),
+            "pronunciations": _row_generator(get_pronunciation_examples, 'get_processed_ipas', ['word', 'original_pronunciation', 'IPA_pronunciation']),
             }
         table = Table.from_database(args.which_table, database)
         row_generator = row_generators[args.which_table](args.language)

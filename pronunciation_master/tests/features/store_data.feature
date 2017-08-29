@@ -44,10 +44,10 @@ Feature: Store the different data into a database
         When I ask to create an empty database "pronunciation_master_test"
         When I ask to store the "pronunciations"
         Then I find the following in the table "pronunciations":
-        | word | ipa_orig | ipa_processed |
-        | nu   | ny       | n,y           |
-        | het  | ɦɛt      | ɦ,ɛ,t         |
-        | het  | ət       | ə,t           |
+        | word | original_pronunciation | ipa_pronunciation |
+        | niet | nit                    | n,i,t             |
+        | het  | ɦɛt                    | ɦ,ɛ,t             |
+        | het  | ət                     | ə,t               |
 
 
     Scenario: Store frequencies

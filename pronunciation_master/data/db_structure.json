@@ -31,6 +31,18 @@
                   "language": {
                                "type": "String(60)",
                                "kwargs": {"nullable": false}
+                              },
+                  "word": {
+                               "type": "String(60)",
+                               "kwargs": {"nullable": false}
+                              },
+                  "original_pronunciation": {
+                               "type": "String(60)",
+                               "kwargs": {"nullable": false}
+                              },
+                  "ipa_pronunciation": {
+                               "type": "String(60)",
+                               "kwargs": {"nullable": false}
                               }
-                 }
+     }
 }
