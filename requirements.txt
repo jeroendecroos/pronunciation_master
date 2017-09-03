@@ -58,3 +58,5 @@ wrapt==1.10.8
 zope.interface==4.3.3
 sqlalchemy
 testing.postgresql
+psycopg2
+sqlalchemy_utils
