@@ -5,13 +5,13 @@ import os
 import psycopg2
 import tempfile
 import testing.postgresql
-import unittest
 
 from pronunciation_master.tests.testlib import testcase, project_vars
 from pronunciation_master.src import store_data
 
 
 PASSWORD = 'dog'
+
 
 def _project_config():
     config_file = os.path.join(project_vars.ASSETS_DIR, 'db_config.test.json')
@@ -49,8 +49,8 @@ class StoreDataBaseTest(testcase.BaseTestCase):
         with tempfile.NamedTemporaryFile(delete=False) as json_file:
             config = self.postgresql.dsn()
             if database:
-                config['database']= database
-            config['password']= PASSWORD
+                config['database'] = database
+            config['password'] = PASSWORD
             json.dump(config, json_file)
             return json_file.name
 
@@ -80,12 +80,15 @@ class StoreDataTest(StoreDataBaseTest):
         self.config_file = self._create_test_config(None)
         db = store_data.create_engine(self.config_file)
         try:
-             store_data._create_superlevel(db)
+            store_data._create_superlevel(db)
         except RuntimeError:
-             pass
+            pass
         store_data._create_empty_tables(db, store_data.resources.db_structure)
 
-    @mock.patch("pronunciation_master.src.get_phonemes.get_phonemes", mock.Mock(return_value=[str(x) for x in range(10)]))
+    @mock.patch(
+        "pronunciation_master.src.get_phonemes.get_phonemes",
+        mock.Mock(return_value=[str(x) for x in range(10)])
+        )
     def test_store_phonemes(self):
         self._prepare_db()
         self._run_store_data("phonemes")
@@ -143,7 +146,9 @@ class DatabaseTest(StoreDataBaseTest):
         config_file = self._create_test_config()
         db = store_data.create_engine(config_file)
         store_data._create_superlevel(db)
-        self.execute("CREATE TABLE hello(id int, value varchar(256))", nofetch=True)
+        self.execute(
+            "CREATE TABLE hello(id int, value varchar(256))",
+            nofetch=True)
         databases = self.execute("SELECT datname FROM pg_database;")
         database_names = set(x[0] for x in databases)
         self.assertTrue(_project_config()['database'] in database_names)
@@ -184,6 +189,9 @@ class TableTest(StoreDataBaseTest):
         self.assertTrue("hello" in table_names)
 
     def test_add_data(self):
+        def iterator():
+            for i in range(10):
+                yield {'first': i}
         structure = {
             'first': {'type': 'Integer'},
             }
@@ -191,9 +199,6 @@ class TableTest(StoreDataBaseTest):
         db = store_data.create_engine(config_file)
         table = store_data.Table.from_config("hello", structure, db)
         table.create(db)
-        def iterator():
-            for x in range (10):
-                 yield {'first': x}
         table.add_data(iterator())
         rows = self.execute("""
             SELECT *
@@ -215,40 +220,41 @@ class TableTest(StoreDataBaseTest):
         table_ref.create(db.engine)
         table_target = store_data.Table.from_database("hello", db.engine)
         self.assertEqual(table_ref.name, table_target.name)
-        self.assertEqual([x.name for x in table_ref.columns], [x.name for x in table_target.columns])
-
+        self.assertEqual(
+            [x.name for x in table_ref.columns],
+            [x.name for x in table_target.columns])
 
 
 class RowGeneratorTest(StoreDataBaseTest):
     @params(('one value',
-                 (lambda x: x),
-                 ['count'],
-                 [{'language': 'bla', 'count': x} for x in range(10)]
-                 ),
+             (lambda x: x),
+             ['col1'],
+             [{'language': 'bla', 'col1': x} for x in range(10)]
+             ),
             ('tuple',
-                 (lambda x: (x, x**2)),
-                 ['count', 'count2'],
-                 [{'language': 'bla', 'count': x, 'count2': x**2} for x in range(10)]
-                 ),
+             (lambda x: (x, x**2)),
+             ['col1', 'col2'],
+             [{'language': 'bla', 'col1': x, 'col2': x**2} for x in range(10)]
+             ),
             ('dict',
-                 (lambda x: {'count': x, 'count2': x**2}),
-                 ['count', 'count2'],
-                 [{'language': 'bla', 'count': x, 'count2': x**2} for x in range(10)]
-                 ),
+             (lambda x: {'col1': x, 'col2': x**2}),
+             ['col1', 'col2'],
+             [{'language': 'bla', 'col1': x, 'col2': x**2} for x in range(10)]
+             ),
             ('dict_reductor',
-                 (lambda x: {'count': x, 'count2': x**2}),
-                 ['count'],
-                 [{'language': 'bla', 'count': x} for x in range(10)]
-                 ),
+             (lambda x: {'col1': x, 'col2': x**2}),
+             ['col1'],
+             [{'language': 'bla', 'col1': x} for x in range(10)]
+             ),
             )
     def test_one_value(self, _, value_creator, column_names, expected_values):
-        class module:  # instead of mock, we mock directly with a class iso module
+        class Module:  # we mock directly with a class iso module mock
             @staticmethod
-            def function(language):
-                for x in range(10):
-                    yield value_creator(x)
-        gen = store_data._row_generator(module, "function", column_names)
+            def function(_):
+                for i in range(10):
+                    yield value_creator(i)
+        gen = store_data._row_generator(Module, "function", column_names)
         self.assertEqual(
-                [x for x in gen('bla')],
-                expected_values
-                )
+            [x for x in gen('bla')],
+            expected_values
+            )

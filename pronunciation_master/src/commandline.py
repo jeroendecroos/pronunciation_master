@@ -46,14 +46,18 @@ class ArgumentParser(argparse.ArgumentParser):
 
     def add_which_table(self):
         self.add_argument(
-             '--which_table', dest='which_table',
+            '--which_table', dest='which_table',
             required=True, default='create_empty',
-            choices=['pronunciations', 'phonemes', 'word_frequencies','create_empty'],
+            choices=['pronunciations',
+                     'phonemes',
+                     'word_frequencies',
+                     'create_empty'
+                     ],
             help='which table to fill')
 
     def add_db_config(self):
         self.add_argument(
-             '--db_config', dest='db_config',
+            '--db_config', dest='db_config',
             required=True, default=resources.db_config,
             help='configuration for database')
 

@@ -21,7 +21,7 @@ def get_frequency_list(language, extended_return_value=False):
     """
     _language_code = FrequencySources.language_code(language)
     filestream = FrequencySources.frequency_filestream(_language_code)
-    return _get_frequency_list_from_filestream(filestream, extended_return_value)
+    return _frequency_list_from_filestream(filestream, extended_return_value)
 
 
 def _get_hermitdave_page(language_code):
@@ -44,7 +44,7 @@ class FrequencySources(object):
     frequency_filestream = staticmethod(_get_hermitdave_page)
 
 
-def _get_frequency_list_from_filestream(filestream, extended_return_value=False):
+def _frequency_list_from_filestream(filestream, extended_return_value=False):
     """Take a filestream and get the frequency list from it
     if extended_return -> list of (word, ranking, occurances)
     """

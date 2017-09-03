@@ -89,7 +89,7 @@ class Table(sqlalchemy.Table):
 
     @staticmethod
     def _set_column_types(columns):
-        from sqlalchemy import Integer, String
+        from sqlalchemy import Integer, String  # flake8: noqa
         for key, values in columns.iteritems():
             assert isinstance(values['type'], basestring)
             values['type'] = eval(values['type'])
@@ -104,18 +104,18 @@ class Table(sqlalchemy.Table):
             for i, row in enumerate(iterator):
                 rows.append(row)
                 if not (i+1) % buffer:
-                     i.execute(*rows)
+                    i.execute(*rows)
 
 
-def _row_generator(module, function, column_names, **kwargs):
+def _row_generator(module, function, column_names, list_modifier=None, **kwargs):
     """Will create a generator of the data returned by function in a module
     the generator will return for each value in the returned data,
         a dictionary with keys, column_names with and added column language
     the len(column_names) < number of 'columns' returend bz the function
-    the function can return any iterable of single-values, lists, tupless or dicts
+    the function can return any iterable of single-values, lists, tuples, dicts
     """
-    data_provider = getattr(module, function)
     def run(language):
+        data_provider = getattr(module, function)
         for item in data_provider(language, **kwargs):
             if isinstance(item, dict):
                 assert len(set(column_names) - set(item.keys())) >= -1
@@ -128,8 +128,14 @@ def _row_generator(module, function, column_names, **kwargs):
                 row = {column_names[0].lower(): item}
             else:
                 assert all(hasattr(item, name) for name in column_names)
-                row = {name.lower(): getattr(item, name) for name in column_names}
+                row = {name.lower(): getattr(item, name)
+                       for name in column_names}
             row['language'] = language
+            for key, value in row.items():
+                if isinstance(value, (list, tuple)):
+                    assert list_modifier
+                    row[key] = list_modifier(value)
+
             yield row
     return run
 
@@ -140,9 +146,21 @@ def _store_data(args):
         init_database(database, resources.db_structure)
     else:
         row_generators = {
-            "phonemes": _row_generator(get_phonemes, 'get_phonemes', ['IPA']),
-            "word_frequencies": _row_generator(get_frequent_words, 'get_frequency_list', ['word', 'ranking', 'occurances'], extended_return_value=True),
-            "pronunciations": _row_generator(get_pronunciation_examples, 'get_processed_ipas', ['word', 'original_pronunciation', 'IPA_pronunciation']),
+            "phonemes": _row_generator(
+                get_phonemes,
+                'get_phonemes',
+                ['IPA']),
+            "word_frequencies": _row_generator(
+                get_frequent_words,
+                'get_frequency_list',
+                ['word', 'ranking', 'occurances'],
+                extended_return_value=True),
+            "pronunciations": _row_generator(
+                get_pronunciation_examples,
+                'get_processed_ipas',
+                ['word', 'original_pronunciation', 'IPA_pronunciation'],
+                list_modifier=','.join,
+                ),
             }
         table = Table.from_database(args.which_table, database)
         row_generator = row_generators[args.which_table](args.language)
@@ -150,6 +168,6 @@ def _store_data(args):
 
 
 if __name__ == '__main__':
-    description = 'Store phonemes, frequency lists, pronunciations in a database'
+    description = 'Store different produced data in a database'
     args = commandline.LanguageDatabaseInput.parse_arguments(description)
     _store_data(args)

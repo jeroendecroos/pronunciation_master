@@ -96,7 +96,6 @@ def get_processed_ipas(language, max_words=15):
         pronunciations = list(factory.create_multiple(pronunciations))
         for pronunciation in pronunciations:
             pronunciation.word = word
-            pronunciation.IPA_pronunciation = ','.join(pronunciation.IPA_pronunciation)
             yield pronunciation
 
 
@@ -114,7 +113,8 @@ class PronunciationExamples(object):
                 ('ab', 'ac'-> only phoneme 'a')
         unequal lengths 'abc', 'bc' will be all ignored till better algorithm
         """
-        pronunciations_IPA = list(self._factory.create_multiple(pronunciations))
+        pronunciations_IPA = self._factory.create_multiple(pronunciations)
+        pronunciations_IPA = list(pronunciations_IPA)
         if pronunciations_IPA and _all_have_same_length(pronunciations_IPA):
             phonemes = _get_equal_phonemes(pronunciations_IPA)
             for phoneme in phonemes:

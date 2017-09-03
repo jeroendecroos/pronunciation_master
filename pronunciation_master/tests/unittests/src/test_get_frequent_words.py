@@ -11,11 +11,10 @@ from pronunciation_master.src import get_frequent_words
 class GetFrequencyListFromFile(testcase.BaseTestCase):
     def setUp(self):
         _, self.temp_filepath = tempfile.mkstemp()
-        self.fun = get_frequent_words._get_frequency_list_from_filestream
+        self.fun = get_frequent_words._frequency_list_from_filestream
 
     def tearDown(self):
         os.remove(self.temp_filepath)
-
 
     def _create_freq_list(self):
         self.freq_list = [
@@ -39,7 +38,8 @@ class GetFrequencyListFromFile(testcase.BaseTestCase):
         self._create_freq_list()
         with open(self.temp_filepath) as instream:
             freq_list_answer = self.fun(instream, True)
-        ranked_list = [(word, i+1, freq) for i, (word, freq) in enumerate(self.freq_list)]
+        ranked_list = [(word, i+1, freq)
+                       for i, (word, freq) in enumerate(self.freq_list)]
         self.assertEqual(freq_list_answer, ranked_list)
 
     def test_word_freq_list(self):
@@ -71,7 +71,8 @@ class GetFrequencyList(testcase.BaseTestCase):
         data = mock.Mock()
         get_frequent_words.FrequencySources = data
         data.language_code = mock.Mock(side_effect=lambda x: x)
-        data.frequency_filestream = mock.Mock(return_value=StringIO.StringIO('word 5\n'))
+        word_stream = StringIO.StringIO('word 5\n')
+        data.frequency_filestream = mock.Mock(return_value=word_stream)
         self.assertEqual(self.fun('dutch'), ['word'])
 
 

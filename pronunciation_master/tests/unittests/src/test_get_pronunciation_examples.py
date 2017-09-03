@@ -199,7 +199,8 @@ class PronunciationFactoryTest(testcase.BaseTestCase):
             ('one right, one partialy wrong', ['ab', 'ax'], 1),
             )
     def test_create_multiple(self, _, entry, number_created):
-        factory = get_pronunciation_examples.PronunciationFactory(available_phonemes)
+        test_factory = get_pronunciation_examples.PronunciationFactory
+        factory = test_factory(available_phonemes)
         IPAs = [x for x in factory.create_multiple(entry)]
         self.assertEqual(len(IPAs), number_created)
 

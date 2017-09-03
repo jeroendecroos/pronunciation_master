@@ -1,5 +1,4 @@
 import collections
-import contextlib
 import itertools
 import json
 import os
@@ -13,7 +12,9 @@ import testlib.project_vars
 import testlib.testrun
 
 
-DB_CONFIG_FILEPATH = os.path.join(testlib.project_vars.ASSETS_DIR, 'db_config.test.json')
+DB_CONFIG_FILEPATH = os.path.join(
+    testlib.project_vars.ASSETS_DIR,
+    'db_config.test.json')
 
 
 @step('Given I have the language "(.*)"')
@@ -112,7 +113,7 @@ def when_i_ask_to_store_its_data(_, which_table):
     world.which_table = which_table
     _external_program_runner(
         'store_data.py',
-        arguments = [
+        arguments=[
             'db_config',
             'which_table',
             'language',
@@ -196,7 +197,7 @@ def check_error_message(_, error_message):
 
 
 @step('Then I see the approximate error message "(.*)"')
-def check_error_message(_, error_message):
+def check_approximate_error_message(_, error_message):
     assert re.search(error_message, world.stderr), world.stderr
 
 
@@ -268,4 +269,7 @@ def _database_engine(db_config):
     DB_CONN_URI_DEFAULT = (DB_CONN_FORMAT.format(
          **DB_CONFIG_DICT
     ))
-    return sqlalchemy.create_engine(DB_CONN_URI_DEFAULT, client_encoding='utf8')
+    engine = sqlalchemy.create_engine(
+        DB_CONN_URI_DEFAULT,
+        client_encoding='utf8')
+    return engine
