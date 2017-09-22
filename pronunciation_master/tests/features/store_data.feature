@@ -19,6 +19,7 @@ Feature: Store the different data into a database
 
     Scenario: Bad language
         Given I have the language "unknown"
+        Given there is not the database 'pronunciation_master_test'
         When I ask to create an empty database "pronunciation_master_test"
         When I ask to store the "<which_table>"
         Then I see the error message "Language 'unknown' is not known"
@@ -31,6 +32,7 @@ Feature: Store the different data into a database
 
     Scenario: Store phonemes
         Given I have the language "dutch"
+        Given there is not the database 'pronunciation_master_test'
         When I ask to create an empty database "pronunciation_master_test"
         When I ask to store the "phonemes"
         Then I find the following in the table "phonemes":
@@ -41,6 +43,7 @@ Feature: Store the different data into a database
 
     Scenario: Store pronunciations
         Given I have the language "dutch"
+        Given there is not the database 'pronunciation_master_test'
         When I ask to create an empty database "pronunciation_master_test"
         When I ask to store the "pronunciations"
         Then I find the following in the table "pronunciations":
@@ -52,6 +55,7 @@ Feature: Store the different data into a database
 
     Scenario: Store frequencies
         Given I have the language "dutch"
+        Given there is not the database 'pronunciation_master_test'
         When I ask to create an empty database "pronunciation_master_test"
         When I ask to store the "word_frequencies"
         Then I find the following in the table "word_frequencies"
