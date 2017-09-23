@@ -153,6 +153,18 @@ def in_the_table(step, table_name):
     for row in hashes:
         assert row in results, (results[:10], row)
 
+@step('I find no duplicates in the table "(.*)" for the following columns')
+def only_once_in_the_table(step, table_name):
+    engine = _database_engine(DB_CONFIG_FILEPATH)
+    columns = ', '.join(step.multiline.split('\n'))
+    with engine.connect() as connection:
+        statement = sqlalchemy.sql.text(
+                " SELECT " + columns +
+                " FROM " + table_name +
+                " WHERE language='"+world.language+"';"
+                )
+        results = [tuple(x) for x in connection.execute(statement)]
+        assert len(set(results)) == len(results)
 
 def _normalize_hashes(hashes):
     def _normalize_dict(d):

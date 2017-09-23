@@ -49,6 +49,8 @@ def _create_superlevel(db):
 def _create_empty_tables(db, db_structure_file):
     db_structure = _load_json(db_structure_file)
     for table_name, config in db_structure.iteritems():
+        if not config:
+            raise RuntimeError('table "{}" needs an non empty config'.format(table_name))
         table = Table.from_config(
             table_name,
             config,
@@ -67,18 +69,27 @@ def _create_empty_tables(db, db_structure_file):
 class Table(sqlalchemy.Table):
     @classmethod
     def from_config(cls, table_name, config, engine):
+        if not 'Columns' in config:
+            raise RuntimeError('Colums must be present in the structure for {}'.format(table_name))
         metadata = sqlalchemy.MetaData(bind=engine)
-        cls._set_column_types(config)
-        colums = (sqlalchemy.Column(
+        cls._set_column_types(config['Columns'])
+        columns = (sqlalchemy.Column(
                      key,
                      values['type'],
                      **values["kwargs"]
                      )
-                 for key, values in config.iteritems())
+                 for key, values in config['Columns'].iteritems())
+        table_config = []
+        if 'UniqueConstraint' in config:
+            constraints = config['UniqueConstraint']
+            table_config.append(sqlalchemy.UniqueConstraint(
+                *constraints['Columns'],
+                **{k:v for k, v in constraints.iteritems() if k in ['name']}
+                ))
         self = cls(
             table_name,
             metadata,
-            *colums
+            *(list(columns) + table_config)
             )
         return self
 

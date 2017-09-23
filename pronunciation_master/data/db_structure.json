@@ -1,48 +1,66 @@
 {
      "phonemes": {
-                  "language": {
-                               "type": "String(60)",
-                               "kwargs": {"nullable": false}
-                              },
-                  "ipa": {
-                               "type": "String(60)",
-                               "kwargs": {"nullable": false}
-                              }
-                 },
+                 "Columns":{
+                      "language": {
+                                   "type": "String(60)",
+                                   "kwargs": {"nullable": false}
+                                  },
+                      "ipa": {
+                                   "type": "String(60)",
+                                   "kwargs": {"nullable": false}
+                                  }
+                  },
+                  "UniqueConstraint": {
+                      "Columns": ["language", "ipa"],
+                      "name": "lang_ipa"
+                  }
+     },
      "word_frequencies": {
-                  "word": {
-                               "type": "String(60)",
-                               "kwargs": {"nullable": false}
-                              },
-                  "language": {
-                               "type": "String(60)",
-                               "kwargs": {"nullable": false}
-                              },
-                  "ranking": {
-                               "type": "Integer",
-                               "kwargs": {"nullable": false}
-                              },
-                  "occurances": {
-                               "type": "Integer",
-                               "kwargs": {"nullable": false}
-                              }
-                 },
+                 "Columns":{
+                      "word": {
+                                   "type": "String(60)",
+                                   "kwargs": {"nullable": false}
+                                  },
+                      "language": {
+                                   "type": "String(60)",
+                                   "kwargs": {"nullable": false}
+                                  },
+                      "ranking": {
+                                   "type": "Integer",
+                                   "kwargs": {"nullable": false}
+                                  },
+                      "occurances": {
+                                   "type": "Integer",
+                                   "kwargs": {"nullable": false}
+                                  }
+                      },
+                  "UniqueConstraint": {
+                      "Columns": ["language", "word"],
+                      "name": "lang_word"
+                      }
+     },
      "pronunciations": {
-                  "language": {
-                               "type": "String(60)",
-                               "kwargs": {"nullable": false}
-                              },
-                  "word": {
-                               "type": "String(60)",
-                               "kwargs": {"nullable": false}
-                              },
-                  "original_pronunciation": {
-                               "type": "String(60)",
-                               "kwargs": {"nullable": false}
-                              },
-                  "ipa_pronunciation": {
-                               "type": "String(60)",
-                               "kwargs": {"nullable": false}
-                              }
+                 "Columns":{
+                      "language": {
+                                   "type": "String(60)",
+                                   "kwargs": {"nullable": false}
+                                  },
+                      "word": {
+                                   "type": "String(60)",
+                                   "kwargs": {"nullable": false}
+                                  },
+                      "original_pronunciation": {
+                                   "type": "String(60)",
+                                   "kwargs": {"nullable": false}
+                                  },
+                      "ipa_pronunciation": {
+                                   "type": "String(60)",
+                                   "kwargs": {"nullable": false}
+                                  }
+                      },
+                  "UniqueConstraint": {
+                      "Columns": ["language", "word"],
+                      "name": "lang_word"
+                  }
      }
 }

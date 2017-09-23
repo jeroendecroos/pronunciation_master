@@ -41,6 +41,19 @@ Feature: Store the different data into a database
         | k              |
 
 
+    @new
+    Scenario: Store only once
+        Given I have the language "dutch"
+        Given there is not the database 'pronunciation_master_test'
+        When I ask to create an empty database "pronunciation_master_test"
+        When I ask to store the "phonemes"
+        When I ask to store the "phonemes"
+        Then I find no duplicates in the table "phonemes" for the following columns
+            """
+            ipa
+            language
+            """
+
     Scenario: Store pronunciations
         Given I have the language "dutch"
         Given there is not the database 'pronunciation_master_test'

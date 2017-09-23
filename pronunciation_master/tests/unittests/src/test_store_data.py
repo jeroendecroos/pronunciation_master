@@ -107,10 +107,10 @@ class DatabaseTest(StoreDataBaseTest):
         store_data.create_engine(config_file)
 
     @params(('no_tables', {}),
-            ('one_table', {'blabla': {'id': {'type': 'Integer'}}}),
+            ('one_table', {'blabla': {'Columns': {'id': {'type': 'Integer'}}}}),
             ('two_tables', {
-                'first': {'id': {'type': 'Integer'}},
-                'second': {'id': {'type': 'Integer'}}
+                'first': {'Columns':{'id': {'type': 'Integer'}}},
+                'second': {'Columns':{'id': {'type': 'Integer'}}}
                  }),
             )
     def test_init_database(self, _, structure):
@@ -121,10 +121,10 @@ class DatabaseTest(StoreDataBaseTest):
         store_data.init_database(db, db_structure_file.name)
 
     @params(('no_tables', {}),
-            ('one_table', {'blabla': {'id': {'type': 'Integer'}}}),
+            ('one_table', {'blabla': {'Columns': {'id': {'type': 'Integer'}}}}),
             ('two_tables', {
-                'first': {'id': {'type': 'Integer'}},
-                'second': {'id': {'type': 'Integer'}}
+                'first': {'Columns':{'id': {'type': 'Integer'}}},
+                'second': {'Columns':{'id': {'type': 'Integer'}}}
                  }),
             )
     def test_create_empty_tables(self, _, structure):
@@ -178,7 +178,7 @@ class TableTest(StoreDataBaseTest):
     def test_from_config(self, _, structure):
         config_file = self._create_test_config(database=None)
         db = store_data.create_engine(config_file)
-        table = store_data.Table.from_config("hello", structure, db)
+        table = store_data.Table.from_config("hello", {"Columns": structure}, db)
         table.create(db.engine)
         tables = self.execute("""
             SELECT table_name
@@ -197,7 +197,7 @@ class TableTest(StoreDataBaseTest):
             }
         config_file = self._create_test_config(database=None)
         db = store_data.create_engine(config_file)
-        table = store_data.Table.from_config("hello", structure, db)
+        table = store_data.Table.from_config("hello", {'Columns': structure}, db)
         table.create(db)
         table.add_data(iterator())
         rows = self.execute("""
@@ -211,8 +211,10 @@ class TableTest(StoreDataBaseTest):
 
     def test_from_database(self):
         structure = {
-            'first': {'type': 'Integer'},
-            'second': {'type': 'Integer'}
+            'Columns': {
+                'first': {'type': 'Integer'},
+                'second': {'type': 'Integer'}
+                }
             }
         config_file = self._create_test_config(database=None)
         db = store_data.create_engine(config_file)
