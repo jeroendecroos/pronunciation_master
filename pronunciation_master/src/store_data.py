@@ -1,15 +1,14 @@
 import json
 import sqlalchemy
 import sqlalchemy_utils
-import itertools
+import psycopg2
+from psycopg2 import errorcodes as psycopg2_errorcodes
 
 import commandline
 import resources
-import get_frequent_words
-import get_phonemes
-import get_pronunciations
-import get_pronunciation_examples
+import data_generators
 
+# Note: This code should be changed to use the sqlaclchemy ORM
 
 def _load_json(filepath):
     with open(filepath) as json_data_file:
@@ -107,75 +106,35 @@ class Table(sqlalchemy.Table):
             values.setdefault('kwargs', {})
 
     def add_data(self, iterator, buffer=None):
+        """add each row in the iterator to the database
+        Will ignore rows that violate unique duplicates
+        is also not recommmend for large bulk insertions.
+        """
+        # WE don't do bulk insertions so we can ignore unique duplicates.
+        # Having a proper implimentation with on_conflict is too much work for now
+        valid_error_codes = [getattr(psycopg2_errorcodes, x)
+                             for x in (
+                                 'UNIQUE_VIOLATION',
+                                 )
+                             ]
         inserter = self.insert()
-        if not buffer:
-            inserter.execute(*iterator),
-        else:
-            rows = []
-            for i, row in enumerate(iterator):
-                rows.append(row)
-                if not (i+1) % buffer:
-                    i.execute(*rows)
-
-
-def _row_generator(module, function, column_names, list_modifier=None, **kwargs):
-    """Will create a generator of the data returned by function in a module
-    the generator will return for each value in the returned data,
-        a dictionary with keys, column_names with and added column language
-    the len(column_names) < number of 'columns' returend bz the function
-    the function can return any iterable of single-values, lists, tuples, dicts
-    """
-    def run(language):
-        data_provider = getattr(module, function)
-        for item in data_provider(language, **kwargs):
-            if isinstance(item, dict):
-                assert len(set(column_names) - set(item.keys())) >= -1
-                row = {key.lower(): item[key] for key in column_names}
-            elif isinstance(item, (list, tuple)):
-                sql_column_names = (x.lower() for x in column_names)
-                row = dict(itertools.izip(sql_column_names, item))
-            elif isinstance(item, (int, basestring)):
-                assert len(column_names) == 1
-                row = {column_names[0].lower(): item}
-            else:
-                assert all(hasattr(item, name) for name in column_names)
-                row = {name.lower(): getattr(item, name)
-                       for name in column_names}
-            row['language'] = language
-            for key, value in row.items():
-                if isinstance(value, (list, tuple)):
-                    assert list_modifier
-                    row[key] = list_modifier(value)
-
-            yield row
-    return run
-
+        for row in iterator:
+            try:
+                inserter.execute(row),
+            except sqlalchemy.exc.IntegrityError as e:
+                if isinstance(e.orig, psycopg2.IntegrityError) and e.orig.pgcode in valid_error_codes:
+                    print("skipping row '{}' due to error '{}".format(row, e))
+                else:
+                    raise
 
 def _store_data(args):
     database = create_engine(args.db_config)
     if args.which_table == 'create_empty':
         init_database(database, resources.db_structure)
     else:
-        row_generators = {
-            "phonemes": _row_generator(
-                get_phonemes,
-                'get_phonemes',
-                ['IPA']),
-            "word_frequencies": _row_generator(
-                get_frequent_words,
-                'get_frequency_list',
-                ['word', 'ranking', 'occurances'],
-                extended_return_value=True),
-            "pronunciations": _row_generator(
-                get_pronunciation_examples,
-                'get_processed_ipas',
-                ['word', 'original_pronunciation', 'IPA_pronunciation'],
-                list_modifier=','.join,
-                ),
-            }
         table = Table.from_database(args.which_table, database)
-        row_generator = row_generators[args.which_table](args.language)
-        table.add_data(row_generator)
+        row_generator = data_generators.RowGenerators.get(args.which_table)
+        table.add_data(row_generator(args.language))
 
 
 if __name__ == '__main__':

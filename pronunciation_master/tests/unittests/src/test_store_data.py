@@ -209,6 +209,36 @@ class TableTest(StoreDataBaseTest):
             rows,
             )
 
+    def test_add_data_no_fail_contains_unique(self):
+        def iterator():
+            yield {'col1': 0, 'col2': 1, 'col3': 1,}
+            yield {'col1': 1, 'col2': 1, 'col3': 2,}
+            yield {'col1': 0, 'col2': 1, 'col3': 3,}
+            yield {'col1': 2, 'col2': 1, 'col3': 4,}
+        structure = {
+            'col1': {'type': 'Integer'},
+            'col2': {'type': 'Integer'},
+            'col3': {'type': 'Integer'},
+            }
+        config_file = self._create_test_config(database=None)
+        db = store_data.create_engine(config_file)
+        table = store_data.Table.from_config(
+            "hello",
+            {'Columns': structure,
+             'UniqueConstraint': {'name':'something', 'Columns': ['col1', 'col2']},
+             },
+            db)
+        table.create(db)
+        table.add_data(iterator())
+        rows = self.execute("""
+            SELECT col1, col2
+            FROM "hello"
+        """)
+        self.assertEqual(
+            [(x, 1,) for x in range(3)],
+            rows,
+            )
+
     def test_from_database(self):
         structure = {
             'Columns': {
@@ -225,38 +255,3 @@ class TableTest(StoreDataBaseTest):
         self.assertEqual(
             [x.name for x in table_ref.columns],
             [x.name for x in table_target.columns])
-
-
-class RowGeneratorTest(StoreDataBaseTest):
-    @params(('one value',
-             (lambda x: x),
-             ['col1'],
-             [{'language': 'bla', 'col1': x} for x in range(10)]
-             ),
-            ('tuple',
-             (lambda x: (x, x**2)),
-             ['col1', 'col2'],
-             [{'language': 'bla', 'col1': x, 'col2': x**2} for x in range(10)]
-             ),
-            ('dict',
-             (lambda x: {'col1': x, 'col2': x**2}),
-             ['col1', 'col2'],
-             [{'language': 'bla', 'col1': x, 'col2': x**2} for x in range(10)]
-             ),
-            ('dict_reductor',
-             (lambda x: {'col1': x, 'col2': x**2}),
-             ['col1'],
-             [{'language': 'bla', 'col1': x} for x in range(10)]
-             ),
-            )
-    def test_one_value(self, _, value_creator, column_names, expected_values):
-        class Module:  # we mock directly with a class iso module mock
-            @staticmethod
-            def function(_):
-                for i in range(10):
-                    yield value_creator(i)
-        gen = store_data._row_generator(Module, "function", column_names)
-        self.assertEqual(
-            [x for x in gen('bla')],
-            expected_values
-            )
