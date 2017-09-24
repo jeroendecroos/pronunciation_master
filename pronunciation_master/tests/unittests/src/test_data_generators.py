@@ -106,3 +106,42 @@ class RowGeneratorTest(testcase.BaseTestCase):
             [x for x in gen.get()('bla')],
             expected_values
             )
+
+    def test_args_and_kwargs(self):
+        class Module:  # we mock directly with a class iso module mock
+            @staticmethod
+            def function(language='', y=4):
+                pass
+        gen = data_generators.RowGenerator(Module, "function", "")
+        self.assertEqual(
+            gen.get_possible_options(),
+            {'y':4},
+            )
+
+    def test_add_options(self):
+        class Module:  # we mock directly with a class iso module mock
+            @staticmethod
+            def function(language='', y=4):
+                pass
+        gen = data_generators.RowGenerator(Module, "function", "")
+        gen.add_options(type('n', (), {'y': 4}))
+        self.assertEqual(
+            gen.kwargs,
+            {'y':4},
+            )
+
+
+class RowGeneratorsTest(testcase.BaseTestCase):
+    def test_args_and_kwargs(self):
+        class Module:  # we mock directly with a class iso module mock
+            @staticmethod
+            def function(language='', y=4):
+                pass
+        gen = data_generators.RowGenerator(Module, "function", "")
+        class RowGenerators(data_generators.RowGenerators):
+            row_generators = {"us": gen}
+        self.assertEqual(
+            RowGenerators.get_all_options(),
+            {'y':4},
+            )
+

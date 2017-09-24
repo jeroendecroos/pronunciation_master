@@ -66,6 +66,28 @@ Feature: Store the different data into a database
         | het  | ət                     | ə,t               |
 
 
+    Scenario: Store with specifications of datagetter
+        Given I have the language "dutch"
+        Given there is not the database 'pronunciation_master_test'
+        When I ask to create an empty database "pronunciation_master_test"
+        When I ask to store the "pronunciations" with "max_words=5"
+        Then I find the following in the table "pronunciations":
+        | word | original_pronunciation | ipa_pronunciation |
+        | het  | ɦɛt                    | ɦ,ɛ,t             |
+        | het  | ət                     | ə,t               |
+        Then I "do not" find the following in the table "pronunciations":
+        | word | original_pronunciation | ipa_pronunciation |
+        | niet | nit                    | n,i,t             |
+
+
+    Scenario: Specifications for datagetter not valid
+        Given I have the language "dutch"
+        Given there is not the database 'pronunciation_master_test'
+        When I ask to create an empty database "pronunciation_master_test"
+        When I ask to store the "phonemes" with "max_words=5"
+        Then I see the approximate error message "error: unrecognized arguments: --max_words 5"
+
+
     Scenario: Store frequencies
         Given I have the language "dutch"
         Given there is not the database 'pronunciation_master_test'

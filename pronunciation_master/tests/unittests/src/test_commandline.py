@@ -17,13 +17,30 @@ class ArgumentParserTest(testcase.BaseTestCase):
         ('maximum_words_to_try', '1', 1),
         ('minimum_examples', '1', 1),
         ('maximum_examples', '1', 1),
-        ('which_table', 'pronunciations', 'pronunciations'),
         ('db_config', 'blabla', 'blabla'),
         )
     def test_add_parameter(self, parameter_name, input_value, return_value):
         parser = commandline.ArgumentParser()
         getattr(parser, "add_"+parameter_name)()
         args = parser.parse_args(['--'+parameter_name, input_value])
+        self.assertEqual(getattr(args, parameter_name), return_value)
+
+    @params(
+        ('which_table', 'create_empty', 'create_empty'),
+        )
+    def test_add_positional_parameter(self, parameter_name, input_value, return_value):
+        parser = commandline.ArgumentParser()
+        getattr(parser, "add_"+parameter_name)()
+        args = parser.parse_args([input_value])
+        self.assertEqual(getattr(args, parameter_name), return_value)
+
+    @params(
+        ('which_table', 'create_empty', 'create_empty'),
+        )
+    def test_add_positional_parameter_with_options(self, parameter_name, input_value, return_value):
+        parser = commandline.ArgumentParser()
+        getattr(parser, "add_"+parameter_name)({'command': {'param': 5}})
+        args = parser.parse_args([input_value, '--param', '5'])
         self.assertEqual(getattr(args, parameter_name), return_value)
 
     def test_add_arguments_by_name(self):
@@ -53,11 +70,6 @@ class XInputTest(testcase.BaseTestCase):
          ['--language', 'test',
           '--word', 'wtest']
         ),
-        (commandline.LanguageDatabaseInput,
-         ['--language', 'test',
-          '--db_config', 'dtest',
-          '--which_table', 'create_empty']
-        ),
         )
     def test_arguments(self, parser, test_arguments):
         args = parser.parse_arguments('h', test_arguments)
@@ -66,6 +78,19 @@ class XInputTest(testcase.BaseTestCase):
         for key, value in expected_values:
             self.assertEqual(getattr(args, key.lstrip('-')), value)
 
+    def test_positional_arguments(self):
+        parser = commandline.LanguageDatabaseInput
+        test_arguments = [
+          '--language', 'test',
+          '--db_config', 'dtest',
+          'create_empty']
+        args = parser.parse_arguments('h', argv=test_arguments)
+        expected_values =  {
+          'language': 'test',
+          'db_config': 'dtest',
+          'which_table': 'create_empty'}
+        for key, value in expected_values.iteritems():
+            self.assertEqual(getattr(args, key), value)
 
 def run_output_command(fun, items):
     out = StringIO()

@@ -165,11 +165,14 @@ def _store_data(args):
         init_database(database, resources.db_structure)
     else:
         table = Table.from_database(args.which_table, database)
-        row_generator = data_generators.RowGenerators.get(args.which_table)
-        table.add_data(row_generator(args.language))
+        row_generator = data_generators.RowGenerators.get(args.which_table, args)
+        table.add_data(row_generator(args.language), row_generator.buffer_size)
 
 
 if __name__ == '__main__':
     description = 'Store different produced data in a database'
-    args = commandline.LanguageDatabaseInput.parse_arguments(description)
+    args = commandline.LanguageDatabaseInput.parse_arguments(
+        description,
+        data_generators.RowGenerators.get_all_options(),
+        )
     _store_data(args)

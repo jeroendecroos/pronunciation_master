@@ -103,7 +103,10 @@ def ask_to_create_an_empty_database(_, database_name):
     world.which_table = 'create_empty'
     _external_program_runner(
         'store_data.py',
-        ['db_config', 'which_table'],
+        ['db_config'],
+        positional_arguments=[
+            'which_table',
+            ]
         )
 
 
@@ -115,9 +118,31 @@ def when_i_ask_to_store_its_data(_, which_table):
         'store_data.py',
         arguments=[
             'db_config',
-            'which_table',
             'language',
             ],
+        positional_arguments=[
+            'which_table',
+            ]
+        )
+
+
+@step(u'When I ask to store the "(.*)" with "(.*)"')
+def when_i_ask_to_store_its_data_with_parameters(_, which_table, parameters):
+    world.db_config = DB_CONFIG_FILEPATH
+    world.which_table = which_table
+    sub_arguments = dict(x.split("=") for x in parameters.split(','))
+    for key, value in sub_arguments.iteritems():
+        setattr(world, key, value)
+    _external_program_runner(
+        'store_data.py',
+        arguments=[
+            'db_config',
+            'language',
+            ],
+        positional_arguments=[
+            'which_table',
+            ],
+    sub_arguments=sub_arguments,
         )
 
 
@@ -140,6 +165,11 @@ def check_tables_database(step):
 
 @step('I find the following in the table "(.*)"')
 def in_the_table(step, table_name):
+    maybe_in_the_table(step, False, table_name)
+
+
+@step('I "(do not|do)" find the following in the table "(.*)"')
+def maybe_in_the_table(step, dont_find, table_name):
     engine = _database_engine(DB_CONFIG_FILEPATH)
     hashes = _normalize_hashes(step.hashes)
     columns = ', '.join(hashes[0].keys())
@@ -151,7 +181,11 @@ def in_the_table(step, table_name):
                 )
         results = [dict(x) for x in connection.execute(statement)]
     for row in hashes:
-        assert row in results, (results[:10], row)
+        if dont_find:
+            assert row not in results, (results[:10], row)
+        else:
+            assert row in results, (results[:10], row)
+
 
 @step('I find no duplicates in the table "(.*)" for the following columns')
 def only_once_in_the_table(step, table_name):
@@ -231,11 +265,19 @@ def check_warning_message(_, in_log, warning_message):
 ############################
 
 
-def _external_program_runner(program, arguments=tuple(), parser=None):
+def _external_program_runner(program, arguments=tuple(), parser=None, positional_arguments=tuple(), sub_arguments=tuple()):
     arguments = {'--{}'.format(a): getattr(world, a)
                  for a in arguments if hasattr(world, a)}
     arguments = list(itertools.chain.from_iterable(arguments.items()))
+    arguments += [getattr(world, a) for a in positional_arguments]
+    sub_arguments = {'--{}'.format(a): getattr(world, a)
+                 for a in sub_arguments if hasattr(world, a)}
+    arguments += list(itertools.chain.from_iterable(sub_arguments.items()))
     path = os.path.join(testlib.project_vars.SRC_DIR, program)
+    if hasattr(world, 'commands'):
+        getattr(world, 'commands').append([path] + arguments)
+    else:
+        world.commands = []
     stdout, stderr, _ = testlib.testrun.run_program(path, arguments)
     world.stdout_warnings, world.stderr = _seperate_warning_lines(stderr)
     world.stdout = parser(stdout) if parser else stdout
