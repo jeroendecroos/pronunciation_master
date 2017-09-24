@@ -63,6 +63,11 @@ class RowGeneratorTest(testcase.BaseTestCase):
              ['col1', 'col2'],
              [{'language': 'bla', 'col1': x, 'col2': x**2} for x in range(10)]
              ),
+            ('namespace',
+              (lambda x: type('waw', (), {'col1': x, 'col2': x**2})),
+             ['col1', 'col2'],
+             [{'language': 'bla', 'col1': x, 'col2': x**2} for x in range(10)]
+             ),
             ('dict_reductor',
              (lambda x: {'col1': x, 'col2': x**2}),
              ['col1'],
@@ -81,3 +86,23 @@ class RowGeneratorTest(testcase.BaseTestCase):
             expected_values
             )
 
+    @params(('add',
+             (lambda x: {'col1': [str(x), str(x**2)]}),
+             ['col1'],
+             [{'language': 'bla', 'col1': str(x)+str(x**2)} for x in range(10)]
+             ),
+            )
+    def test_list_value(self, _, value_creator, column_names, expected_values):
+        class Module:  # we mock directly with a class iso module mock
+            @staticmethod
+            def function(_):
+                for i in range(10):
+                    yield value_creator(i)
+        gen = data_generators.RowGenerator(
+            Module, "function",
+            column_names,
+            list_modifier=lambda x: ''.join(x))
+        self.assertEqual(
+            [x for x in gen.get()('bla')],
+            expected_values
+            )

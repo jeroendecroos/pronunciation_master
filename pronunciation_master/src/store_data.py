@@ -136,7 +136,7 @@ class Table(sqlalchemy.Table):
                 except sqlalchemy.exc.IntegrityError as e:
                     if self._soft_error(e):
                         buffer_size = max(1, len(values)/10)
-                        for piece in split_every(buffer_sizvaluess):
+                        for piece in split_every(buffer_size, values):
                             self.add_data(piece)
 
     def _add_data_no_fail(self, iterable):

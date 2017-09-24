@@ -44,22 +44,27 @@ class CommonArgumentParserTest(testcase.BaseTestCase):
         parser.parse_arguments('h', [])
 
 
-class LanguageInputTest(testcase.BaseTestCase):
-    def test_arguments(self):
-        parser = commandline.LanguageInput
-        test_arguments = ['--language', 'test']
+class XInputTest(testcase.BaseTestCase):
+    @params(
+        (commandline.LanguageInput,
+         ['--language', 'test']
+        ),
+        (commandline.LanguageAndWordInput,
+         ['--language', 'test',
+          '--word', 'wtest']
+        ),
+        (commandline.LanguageDatabaseInput,
+         ['--language', 'test',
+          '--db_config', 'dtest',
+          '--which_table', 'create_empty']
+        ),
+        )
+    def test_arguments(self, parser, test_arguments):
         args = parser.parse_arguments('h', test_arguments)
-        self.assertEqual(args.language, 'test')
-
-
-class LanguageAndWordInputTest(testcase.BaseTestCase):
-    def test_arguments(self):
-        parser = commandline.LanguageAndWordInput
-        test_arguments = ['--language', 'test',
-                          '--word', 'wtest']
-        args = parser.parse_arguments('h', test_arguments)
-        self.assertEqual(args.language, 'test')
-        self.assertEqual(args.word, 'wtest')
+        expected_values = [test_arguments[x:x+2]
+                           for x in xrange(0, len(test_arguments), 2)]
+        for key, value in expected_values:
+            self.assertEqual(getattr(args, key.lstrip('-')), value)
 
 
 def run_output_command(fun, items):
