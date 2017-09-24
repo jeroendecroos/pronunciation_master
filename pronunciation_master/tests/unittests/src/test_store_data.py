@@ -1,8 +1,9 @@
-from nose2.tools import params
-import mock
 import json
+import mock
+from nose2.tools import params
 import os
 import psycopg2
+import sqlalchemy
 import tempfile
 import testing.postgresql
 
@@ -142,6 +143,15 @@ class DatabaseTest(StoreDataBaseTest):
         for table_name in structure:
             self.assertTrue(table_name in table_names)
 
+    def test_create_empty_tables_noconfig(self):
+        config_file = self._create_test_config(None)
+        db = store_data.create_engine(config_file)
+        structure = {'table': {}}
+        with tempfile.NamedTemporaryFile(delete=False) as db_structure_file:
+            json.dump(structure, db_structure_file)
+        with self.assertRaises(RuntimeError):
+            store_data._create_empty_tables(db, db_structure_file.name)
+
     def test_create_superlevel(self):
         config_file = self._create_test_config()
         db = store_data.create_engine(config_file)
@@ -188,6 +198,12 @@ class TableTest(StoreDataBaseTest):
         table_names = set(x[0] for x in tables)
         self.assertTrue("hello" in table_names)
 
+    def test_from_config_no_columns(self):
+        config_file = self._create_test_config(database=None)
+        db = store_data.create_engine(config_file)
+        with self.assertRaises(RuntimeError):
+            table = store_data.Table.from_config("hello", {}, db)
+
     def test_add_data(self):
         def iterator():
             for i in range(10):
@@ -200,6 +216,27 @@ class TableTest(StoreDataBaseTest):
         table = store_data.Table.from_config("hello", {'Columns': structure}, db)
         table.create(db)
         table.add_data(iterator())
+        rows = self.execute("""
+            SELECT *
+            FROM "hello"
+        """)
+        self.assertEqual(
+            [(x,) for x in range(10)],
+            rows,
+            )
+
+    def test_add_data_buffer(self):
+        def iterator():
+            for i in range(10):
+                yield {'first': i}
+        structure = {
+            'first': {'type': 'Integer'},
+            }
+        config_file = self._create_test_config(database=None)
+        db = store_data.create_engine(config_file)
+        table = store_data.Table.from_config("hello", {'Columns': structure}, db)
+        table.create(db)
+        table.add_data(iterator(), buffer_size=10)
         rows = self.execute("""
             SELECT *
             FROM "hello"
@@ -238,6 +275,27 @@ class TableTest(StoreDataBaseTest):
             [(x, 1,) for x in range(3)],
             rows,
             )
+
+    def test_add_data_fail_unknown_error(self):
+        def iterator():
+            yield {'col1': 'string'}
+        structure = {
+            'col1': {'type': 'Integer'},
+            }
+        config_file = self._create_test_config(database=None)
+        db = store_data.create_engine(config_file)
+        table = store_data.Table.from_config(
+            "hello",
+            {'Columns': structure,
+             },
+            db)
+        table.create(db)
+        class inserter(object):
+            def execute(self, *args, **kwargs):
+                raise sqlalchemy.exc.IntegrityError("", {}, Exception)
+        table.insert = mock.Mock(return_value=inserter())
+        with self.assertRaises(sqlalchemy.exc.IntegrityError):
+            table.add_data(iterator())
 
     def test_from_database(self):
         structure = {

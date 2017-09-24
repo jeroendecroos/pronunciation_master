@@ -143,15 +143,19 @@ class GetEqualPhonemesTest(testcase.BaseTestCase):
         self.assertItemsEqual(self.fun(entry), expected)
 
 
-class GetPronunciationExamplesTest(testcase.BaseTestCase):
+class FakeDataGettersTest(testcase.BaseTestCase):
     def setUp(self):
-        self.fun = get_pronunciation_examples.get_pronunciation_examples
         data = mock.Mock()
         get_pronunciation_examples.DataGetters = data
         data.phonemes = mock.Mock(return_value=['a', 'b'])
         data.words = mock.Mock(return_value=['word'])
         data.pronunciations = mock.Mock(side_effect=self.get_pronunciations)
         self.data = data
+
+class GetPronunciationExamplesTest(FakeDataGettersTest):
+    def setUp(self):
+        super(GetPronunciationExamplesTest, self).setUp()
+        self.fun = get_pronunciation_examples.get_pronunciation_examples
 
     @staticmethod
     def get_pronunciations(x, y):
@@ -177,6 +181,31 @@ class GetPronunciationExamplesTest(testcase.BaseTestCase):
         examples = self.fun('dutch', 3, minimum_examples=1)
         self.assertItemsEqual(examples['a'], ['word'])
         self.assertEqual(self.data.pronunciations.call_count, 1)
+
+
+class GetProcessedIpas(FakeDataGettersTest):
+    @staticmethod
+    def get_pronunciations(x, y):
+        pronunciations = {'word': ['ab']}
+        if y in pronunciations:
+            return pronunciations[y]
+        else:
+            return []
+
+    def setUp(self):
+        super(GetProcessedIpas, self).setUp()
+        self.fun = get_pronunciation_examples.get_processed_ipas
+
+    def test_one_word(self):
+        examples = [x for x in self.fun('dutch', 1)]
+        word = [x for x in examples if x.word == 'word'][0]
+        self.assertEqual(word.IPA_pronunciation, ['a', 'b'])
+
+    def test_no_pronunciations(self):
+        self.data.words = mock.Mock(return_value=['word', 'no_pron'])
+        examples = [x for x in self.fun('dutch')]
+        example =  [x for x in examples if x.word == 'no_pron']
+        self.assertEqual(example, [])
 
 
 class PronunciationFactoryTest(testcase.BaseTestCase):

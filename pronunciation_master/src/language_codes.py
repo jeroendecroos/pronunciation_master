@@ -26,8 +26,6 @@ class ISO639(object):
         try:
             if self._get_entry(key):
                 return True
-            else:
-                return False
         except KeyError:
             return False
 
