@@ -12,7 +12,7 @@
                   },
                   "UniqueConstraint": {
                       "Columns": ["language", "ipa"],
-                      "name": "phonemes_lang_ipa"
+                      "name": "phonemes_key"
                   }
      },
      "word_frequencies": {
@@ -36,7 +36,7 @@
                       },
                   "UniqueConstraint": {
                       "Columns": ["language", "word"],
-                      "name": "word_frequencies_lang_word"
+                      "name": "word_frequencies_key"
                       }
      },
      "pronunciations": {
@@ -59,8 +59,8 @@
                                   }
                       },
                   "UniqueConstraint": {
-                      "Columns": ["language", "word"],
-                      "name": "pronunciations_lang_word"
+                      "Columns": ["language", "word", "original_pronunciation"],
+                      "name": "pronunciations_key"
                   }
      }
 }

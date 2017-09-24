@@ -1,3 +1,4 @@
+import itertools
 import json
 import sqlalchemy
 import sqlalchemy_utils
@@ -8,11 +9,20 @@ import commandline
 import resources
 import data_generators
 
-# Note: This code should be changed to use the sqlaclchemy ORM
+# Note: This whole module should be changed to use the sqlaclchemy ORM
 
 def _load_json(filepath):
     with open(filepath) as json_data_file:
         return json.load(json_data_file)
+
+
+def split_every(n, iterable):
+    i = iter(iterable)
+    while True:
+        piece = list(itertools.islice(i, n))
+        if not piece:
+            break
+        yield piece
 
 
 ##########################################
@@ -105,27 +115,49 @@ class Table(sqlalchemy.Table):
             values['type'] = eval(values['type'])
             values.setdefault('kwargs', {})
 
-    def add_data(self, iterator, buffer=None):
-        """add each row in the iterator to the database
+    def add_data(self, iterable, buffer_size=None):
+        """add each row in the iterable to the database
         Will ignore rows that violate unique duplicates
         is also not recommmend for large bulk insertions.
         """
         # WE don't do bulk insertions so we can ignore unique duplicates.
         # Having a proper implimentation with on_conflict is too much work for now
+        inserter = self.insert()
+        if buffer_size:    #lazy evaluation > memory
+            for piece in split_every(buffer_size, iterable):
+                self.add_data(piece)
+        else:
+            values = list(iterable)
+            if len(values) == 1:
+                self._add_data_no_fail(iterable)
+            else:
+                try:
+                    inserter.execute(*values)
+                except sqlalchemy.exc.IntegrityError as e:
+                    if self._soft_error(e):
+                        buffer_size = max(1, len(values)/10)
+                        for piece in split_every(buffer_sizvaluess):
+                            self.add_data(piece)
+
+    def _add_data_no_fail(self, iterable):
+        inserter = self.insert()
+        try:
+            inserter.execute(*iterable),
+        except sqlalchemy.exc.IntegrityError as e:
+            if self._soft_error(e):
+                print("skipping row '{}' due to error '{}".format(iterable, e))
+            else:
+                raise
+
+    @staticmethod
+    def _soft_error(e):
         valid_error_codes = [getattr(psycopg2_errorcodes, x)
                              for x in (
                                  'UNIQUE_VIOLATION',
                                  )
                              ]
-        inserter = self.insert()
-        for row in iterator:
-            try:
-                inserter.execute(row),
-            except sqlalchemy.exc.IntegrityError as e:
-                if isinstance(e.orig, psycopg2.IntegrityError) and e.orig.pgcode in valid_error_codes:
-                    print("skipping row '{}' due to error '{}".format(row, e))
-                else:
-                    raise
+        return isinstance(e.orig, psycopg2.IntegrityError) and e.orig.pgcode in valid_error_codes
+
 
 def _store_data(args):
     database = create_engine(args.db_config)
