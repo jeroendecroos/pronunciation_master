@@ -1,5 +1,9 @@
 # testlib.testcase.py
+import json
 import os
+import psycopg2
+import sqlalchemy
+import tempfile
 import unittest
 
 import project_vars
@@ -35,3 +39,12 @@ class BaseTestCase(unittest.TestCase):
         filename = self.asset_filename(path)
         with open(filename, 'rb') as f:
             return f.read()
+
+
+def _project_config():
+    config_file = os.path.join(project_vars.ASSETS_DIR, 'db_config.test.json')
+    with open(config_file) as json_data_file:
+        config = json.load(json_data_file)
+    return config
+
+

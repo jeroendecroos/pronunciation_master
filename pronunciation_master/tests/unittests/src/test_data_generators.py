@@ -142,6 +142,6 @@ class RowGeneratorsTest(testcase.BaseTestCase):
             row_generators = {"us": gen}
         self.assertEqual(
             RowGenerators.get_all_options(),
-            {'y':4},
+            {'us': {'y':4}},
             )
 

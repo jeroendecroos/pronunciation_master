@@ -35,13 +35,14 @@ class ArgumentParserTest(testcase.BaseTestCase):
         self.assertEqual(getattr(args, parameter_name), return_value)
 
     @params(
-        ('which_table', 'create_empty', 'create_empty'),
+        ('which_table', 'command', 'command'),
         )
     def test_add_positional_parameter_with_options(self, parameter_name, input_value, return_value):
         parser = commandline.ArgumentParser()
         getattr(parser, "add_"+parameter_name)({'command': {'param': 5}})
         args = parser.parse_args([input_value, '--param', '5'])
         self.assertEqual(getattr(args, parameter_name), return_value)
+        self.assertEqual(getattr(args, 'param'), 5)
 
     def test_add_arguments_by_name(self):
         parser = commandline.ArgumentParser()

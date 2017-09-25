@@ -2,24 +2,15 @@ import json
 import mock
 from nose2.tools import params
 import os
-import psycopg2
-import sqlalchemy
-import tempfile
 import testing.postgresql
+import tempfile
+import psycopg2
 
 from pronunciation_master.tests.testlib import testcase, project_vars
 from pronunciation_master.src import store_data
-
+from pronunciation_master.src import database
 
 PASSWORD = 'dog'
-
-
-def _project_config():
-    config_file = os.path.join(project_vars.ASSETS_DIR, 'db_config.test.json')
-    with open(config_file) as json_data_file:
-        config = json.load(json_data_file)
-    return config
-
 
 def handler(postgresql):
     conn = psycopg2.connect(**postgresql.dsn(password="None"))
@@ -39,7 +30,15 @@ def tearDownModule():
     Postgresql.clear_cache()
 
 
-class StoreDataBaseTest(testcase.BaseTestCase):
+def _project_config():
+    config_file = os.path.join(project_vars.ASSETS_DIR, 'db_config.test.json')
+    with open(config_file) as json_data_file:
+        config = json.load(json_data_file)
+    return config
+
+
+
+class DataBaseTestCase(testcase.BaseTestCase):
     def setUp(self):
         self.postgresql = Postgresql()
 
@@ -66,7 +65,7 @@ class StoreDataBaseTest(testcase.BaseTestCase):
         return results
 
 
-class StoreDataTest(StoreDataBaseTest):
+class StoreDataTest(DataBaseTestCase):
     def _get_args(self):
         args = mock.Mock()
         args.db_config = self._create_test_config()
@@ -79,12 +78,12 @@ class StoreDataTest(StoreDataBaseTest):
 
     def _prepare_db(self):
         self.config_file = self._create_test_config(None)
-        db = store_data.create_engine(self.config_file)
+        db = database.create_engine(self.config_file)
         try:
-            store_data._create_superlevel(db)
+            database._create_superlevel(db)
         except RuntimeError:
             pass
-        store_data._create_empty_tables(db, store_data.resources.db_structure)
+        database._create_empty_tables(db, store_data.resources.db_structure)
 
     @mock.patch(
         "pronunciation_master.src.get_phonemes.get_phonemes",
@@ -100,216 +99,3 @@ class StoreDataTest(StoreDataBaseTest):
         args.which_table = which_table
         args.language = 'dutch'
         store_data._store_data(args)
-
-
-class DatabaseTest(StoreDataBaseTest):
-    def test_init(self):
-        config_file = self._create_test_config()
-        store_data.create_engine(config_file)
-
-    @params(('no_tables', {}),
-            ('one_table', {'blabla': {'Columns': {'id': {'type': 'Integer'}}}}),
-            ('two_tables', {
-                'first': {'Columns':{'id': {'type': 'Integer'}}},
-                'second': {'Columns':{'id': {'type': 'Integer'}}}
-                 }),
-            )
-    def test_init_database(self, _, structure):
-        config_file = self._create_test_config()
-        db = store_data.create_engine(config_file)
-        with tempfile.NamedTemporaryFile(delete=False) as db_structure_file:
-            json.dump(structure, db_structure_file)
-        store_data.init_database(db, db_structure_file.name)
-
-    @params(('no_tables', {}),
-            ('one_table', {'blabla': {'Columns': {'id': {'type': 'Integer'}}}}),
-            ('two_tables', {
-                'first': {'Columns':{'id': {'type': 'Integer'}}},
-                'second': {'Columns':{'id': {'type': 'Integer'}}}
-                 }),
-            )
-    def test_create_empty_tables(self, _, structure):
-        config_file = self._create_test_config(None)
-        db = store_data.create_engine(config_file)
-        with tempfile.NamedTemporaryFile(delete=False) as db_structure_file:
-            json.dump(structure, db_structure_file)
-        store_data._create_empty_tables(db, db_structure_file.name)
-        tables = self.execute("""
-            SELECT table_name
-            FROM information_schema.tables
-            WHERE table_schema='public'
-        """)
-        table_names = set(x[0] for x in tables)
-        for table_name in structure:
-            self.assertTrue(table_name in table_names)
-
-    def test_create_empty_tables_noconfig(self):
-        config_file = self._create_test_config(None)
-        db = store_data.create_engine(config_file)
-        structure = {'table': {}}
-        with tempfile.NamedTemporaryFile(delete=False) as db_structure_file:
-            json.dump(structure, db_structure_file)
-        with self.assertRaises(RuntimeError):
-            store_data._create_empty_tables(db, db_structure_file.name)
-
-    def test_create_superlevel(self):
-        config_file = self._create_test_config()
-        db = store_data.create_engine(config_file)
-        store_data._create_superlevel(db)
-        self.execute(
-            "CREATE TABLE hello(id int, value varchar(256))",
-            nofetch=True)
-        databases = self.execute("SELECT datname FROM pg_database;")
-        database_names = set(x[0] for x in databases)
-        self.assertTrue(_project_config()['database'] in database_names)
-
-    def test_create_superlevel_failure(self):
-        config_file = self._create_test_config(None)
-        db = store_data.create_engine(config_file)
-        with self.assertRaises(RuntimeError):
-            store_data._create_superlevel(db)
-
-
-class TableTest(StoreDataBaseTest):
-    def test_init(self):
-        store_data.Table()
-
-    @params(('one column', {
-                'first': {'type': 'Integer'}
-                }),
-            ('two_columns', {
-                'first': {'type': 'Integer'},
-                'second': {'type': 'Integer'}
-                 }),
-            ('with String', {
-                'first': {'type': 'String'},
-                 }),
-            )
-    def test_from_config(self, _, structure):
-        config_file = self._create_test_config(database=None)
-        db = store_data.create_engine(config_file)
-        table = store_data.Table.from_config("hello", {"Columns": structure}, db)
-        table.create(db.engine)
-        tables = self.execute("""
-            SELECT table_name
-            FROM information_schema.tables
-            WHERE table_schema='public'
-        """)
-        table_names = set(x[0] for x in tables)
-        self.assertTrue("hello" in table_names)
-
-    def test_from_config_no_columns(self):
-        config_file = self._create_test_config(database=None)
-        db = store_data.create_engine(config_file)
-        with self.assertRaises(RuntimeError):
-            table = store_data.Table.from_config("hello", {}, db)
-
-    def test_add_data(self):
-        def iterator():
-            for i in range(10):
-                yield {'first': i}
-        structure = {
-            'first': {'type': 'Integer'},
-            }
-        config_file = self._create_test_config(database=None)
-        db = store_data.create_engine(config_file)
-        table = store_data.Table.from_config("hello", {'Columns': structure}, db)
-        table.create(db)
-        table.add_data(iterator())
-        rows = self.execute("""
-            SELECT *
-            FROM "hello"
-        """)
-        self.assertEqual(
-            [(x,) for x in range(10)],
-            rows,
-            )
-
-    def test_add_data_buffer(self):
-        def iterator():
-            for i in range(10):
-                yield {'first': i}
-        structure = {
-            'first': {'type': 'Integer'},
-            }
-        config_file = self._create_test_config(database=None)
-        db = store_data.create_engine(config_file)
-        table = store_data.Table.from_config("hello", {'Columns': structure}, db)
-        table.create(db)
-        table.add_data(iterator(), buffer_size=10)
-        rows = self.execute("""
-            SELECT *
-            FROM "hello"
-        """)
-        self.assertEqual(
-            [(x,) for x in range(10)],
-            rows,
-            )
-
-    def test_add_data_no_fail_contains_unique(self):
-        def iterator():
-            yield {'col1': 0, 'col2': 1, 'col3': 1,}
-            yield {'col1': 1, 'col2': 1, 'col3': 2,}
-            yield {'col1': 0, 'col2': 1, 'col3': 3,}
-            yield {'col1': 2, 'col2': 1, 'col3': 4,}
-        structure = {
-            'col1': {'type': 'Integer'},
-            'col2': {'type': 'Integer'},
-            'col3': {'type': 'Integer'},
-            }
-        config_file = self._create_test_config(database=None)
-        db = store_data.create_engine(config_file)
-        table = store_data.Table.from_config(
-            "hello",
-            {'Columns': structure,
-             'UniqueConstraint': {'name':'something', 'Columns': ['col1', 'col2']},
-             },
-            db)
-        table.create(db)
-        table.add_data(iterator())
-        rows = self.execute("""
-            SELECT col1, col2
-            FROM "hello"
-        """)
-        self.assertEqual(
-            [(x, 1,) for x in range(3)],
-            rows,
-            )
-
-    def test_add_data_fail_unknown_error(self):
-        def iterator():
-            yield {'col1': 'string'}
-        structure = {
-            'col1': {'type': 'Integer'},
-            }
-        config_file = self._create_test_config(database=None)
-        db = store_data.create_engine(config_file)
-        table = store_data.Table.from_config(
-            "hello",
-            {'Columns': structure,
-             },
-            db)
-        table.create(db)
-        class inserter(object):
-            def execute(self, *args, **kwargs):
-                raise sqlalchemy.exc.IntegrityError("", {}, Exception)
-        table.insert = mock.Mock(return_value=inserter())
-        with self.assertRaises(sqlalchemy.exc.IntegrityError):
-            table.add_data(iterator())
-
-    def test_from_database(self):
-        structure = {
-            'Columns': {
-                'first': {'type': 'Integer'},
-                'second': {'type': 'Integer'}
-                }
-            }
-        config_file = self._create_test_config(database=None)
-        db = store_data.create_engine(config_file)
-        table_ref = store_data.Table.from_config("hello", structure, db)
-        table_ref.create(db.engine)
-        table_target = store_data.Table.from_database("hello", db.engine)
-        self.assertEqual(table_ref.name, table_target.name)
-        self.assertEqual(
-            [x.name for x in table_ref.columns],
-            [x.name for x in table_target.columns])

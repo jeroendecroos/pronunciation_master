@@ -15,6 +15,13 @@ class DataGetters(object):
     words = staticmethod(get_frequent_words.get_frequency_list)
     pronunciations = staticmethod(get_pronunciations.get_pronunciations)
 
+class DatabaseDataGetters(DataGetters):
+    """ gets data from database.
+    """
+    phonemes = staticmethod(get_phonemes.get_phonemes)
+    words = staticmethod(get_frequent_words.get_frequency_list)
+    pronunciations = staticmethod(get_pronunciations.get_pronunciations)
+
 
 def _all_have_same_length(items):
     example = next(iter(items))
