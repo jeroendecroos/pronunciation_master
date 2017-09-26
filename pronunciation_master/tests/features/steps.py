@@ -57,6 +57,27 @@ def given_i_want_to_get_minimum_X_examples(_, minimum_examples):
 def given_i_want_to_get_maximum_X_examples(_, maximum_examples):
     world.maximum_examples = maximum_examples
 
+@step(u'Given there is the following in the table "([^"]*)":')
+def given_there_is_the_following_in_the_table_group1(step, table_name):
+    engine = _database_engine(DB_CONFIG_FILEPATH)
+    hashes = _normalize_hashes(step.hashes)
+    with engine.connect() as connection:
+        for row in hashes:
+            row['language'] = world.language
+            columns = ", ".join(row.keys())
+            values = ", ".join("'{}'".format(x) for x in row.values())
+            statement = sqlalchemy.sql.text(
+                    " INSERT INTO " + table_name +
+                    " (" + columns + ")"
+                    " VALUES ("+values+");"
+                    )
+            connection.execute(statement)
+
+
+@step(u'Given I want to get the data from the database')
+def given_i_want_to_get_the_data_from_the_database(_):
+    world.db_config = DB_CONFIG_FILEPATH
+
 
 @step
 def ask_for_its_frequency_list(_):
@@ -84,7 +105,8 @@ def ask_for_pronunciation_examples(_):
             'language',
             'maximum_words_to_try',
             'minimum_examples',
-            'maximum_examples'],
+            'maximum_examples',
+            'db_config'],
         _stdout_dict_parser
         )
 
@@ -224,7 +246,7 @@ def check_dict(step):
     tests = _transform_lettuce_hashes_into_dict(step.hashes)
     for test_key, test_values in tests.iteritems():
         for value in test_values:
-            debug_text = (value, test_key, world.stdout[test_key])
+            debug_text = (value, test_key, world.stdout.get(test_key, world.stdout))
             assert value in world.stdout[test_key], debug_text
 
 
@@ -256,7 +278,6 @@ def check_warning_message(_, in_log, warning_message):
         assert warning_message not in world.stdout_warnings
     else:
         raise Exception("in_log value is not valid for this lettuce step")
-
 
 ############################
 #
@@ -312,6 +333,7 @@ def _stdout_dict_parser(stdout):
             error_template = "we have a double entry for '{}' in the output"
             raise Exception(error_template.format(phoneme))
         new_dict[phoneme] = [l.strip() for l in pronunciations]
+    assert new_dict, (world.stdout, world.stderr)
     return new_dict
 
 
