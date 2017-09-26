@@ -152,12 +152,14 @@ class PronunciationExamples(object):
         return self._examples.values()
 
 
-def get_pronunciation_examples(language, max_words=10, **kwargs):
+def get_pronunciation_examples(language, db_config=None, max_words=10, **kwargs):
     """ get the pronunciation examples for a certain language
     Arguments:
         Language = target language
         max_words = maximum number of words to try
     """
+    if db_config:
+        raise NotImplementedError
     phonemes = DataGetters.phonemes(language)
     frequent_words = DataGetters.words(language)
     examples = PronunciationExamples(phonemes, **kwargs)
@@ -182,7 +184,7 @@ def not_enough_examples_warnings(examples, minimum):
 
 if __name__ == '__main__':
     description = 'Get the pronunciaton_examples for a language'
-    args = commandline.LanguageInput.parse_arguments(
+    args = commandline.LanguageAndDatabaseInput.parse_arguments(
             description,
             extra_arguments=[
                 'maximum_words_to_try',
@@ -190,6 +192,7 @@ if __name__ == '__main__':
                 'maximum_examples'])
     pronunciation_examples = get_pronunciation_examples(
         args.language,
+        db_config=args.db_config,
         max_words=args.maximum_words_to_try,
         maximum_examples=args.maximum_examples,
         minimum_examples=args.minimum_examples)

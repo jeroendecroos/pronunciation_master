@@ -96,12 +96,17 @@ class LanguageAndWordInput(CommonArguments):
         parser.add_language()
         parser.add_word()
 
+class LanguageAndDatabaseInput(CommonArguments):
+    @classmethod
+    def _add_arguments(_, parser):
+        parser.add_language()
+        parser.add_db_config()
 
-class LanguageDatabaseInput(CommonArguments):
+class LanguageAndDatabaseOutput(CommonArguments):
     @classmethod
     def parse_arguments(cls, description, data_getter_options={}, argv=None, extra_arguments=tuple()):
         cls.data_getter_options = data_getter_options
-        return super(LanguageDatabaseInput, cls).parse_arguments(
+        return super(LanguageAndDatabaseOutput, cls).parse_arguments(
             description,
             argv=argv,
             extra_arguments=extra_arguments,

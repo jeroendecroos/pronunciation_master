@@ -18,7 +18,7 @@ def _store_data(args):
 
 if __name__ == '__main__':
     description = 'Store different produced data in a database'
-    args = commandline.LanguageDatabaseInput.parse_arguments(
+    args = commandline.LanguageAndDatabaseOutput.parse_arguments(
         description,
         data_generators.RowGenerators.get_all_options(),
         )

@@ -80,7 +80,7 @@ class XInputTest(testcase.BaseTestCase):
             self.assertEqual(getattr(args, key.lstrip('-')), value)
 
     def test_positional_arguments(self):
-        parser = commandline.LanguageDatabaseInput
+        parser = commandline.LanguageAndDatabaseOutput
         test_arguments = [
           '--language', 'test',
           '--db_config', 'dtest',
