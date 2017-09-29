@@ -44,6 +44,13 @@ class ArgumentParser(argparse.ArgumentParser):
             required=False, default=5, type=int,
             help='dont list more examples')
 
+    def add_use_database(self):
+        self.add_argument(
+            '--use_database', dest='use_database',
+            required=False, default='not', type=str,
+            choices=["not", "only", "if_possible"],
+            help='dont list more examples')
+
     def add_which_table(self, data_getter_options={}):
         subparsers = self.add_subparsers(help='which table to fill', dest='which_table')
         parser = subparsers.add_parser("create_empty")
@@ -57,10 +64,10 @@ class ArgumentParser(argparse.ArgumentParser):
                     default=default,
                     )
 
-    def add_db_config(self):
+    def add_db_config(self, required=True):
         self.add_argument(
             '--db_config', dest='db_config',
-            required=True, default=resources.db_config,
+            required=required, default=resources.db_config,
             help='configuration for database')
 
     def add_arguments_by_name(self, *args):
@@ -100,7 +107,8 @@ class LanguageAndDatabaseInput(CommonArguments):
     @classmethod
     def _add_arguments(_, parser):
         parser.add_language()
-        parser.add_db_config()
+        parser.add_db_config(required=False)
+        parser.add_use_database()
 
 class LanguageAndDatabaseOutput(CommonArguments):
     @classmethod

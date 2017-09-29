@@ -333,7 +333,6 @@ def _stdout_dict_parser(stdout):
             error_template = "we have a double entry for '{}' in the output"
             raise Exception(error_template.format(phoneme))
         new_dict[phoneme] = [l.strip() for l in pronunciations]
-    assert new_dict, (world.stdout, world.stderr)
     return new_dict
 
 

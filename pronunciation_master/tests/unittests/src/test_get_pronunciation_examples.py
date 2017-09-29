@@ -32,9 +32,6 @@ class PronunciationExamplesTest(testcase.BaseTestCase):
         self.assertItemsEqual([x for x in examples], ['a'])
 
     @params(
-        ('non valid phonemes',
-            ('one', ['g']),
-            {'a': [], 'b': [], 'c': []}),
         ('1 pronunciation, 1phoneme',
             ('one', ['a']),
             {'a': ['one'], 'b': [], 'c': []}),
@@ -144,13 +141,20 @@ class GetEqualPhonemesTest(testcase.BaseTestCase):
 
 
 class FakeDataGettersTest(testcase.BaseTestCase):
+    @property
+    def data_getters(self):
+        return self._data_getters
+    @data_getters.setter
+    def data_getters(self, data_getter):
+        self._data_getters = data_getter
+        get_pronunciation_examples.DataGetters = self.data_getters
+
     def setUp(self):
-        data = mock.Mock()
-        get_pronunciation_examples.DataGetters = data
-        data.phonemes = mock.Mock(return_value=['a', 'b'])
-        data.words = mock.Mock(return_value=['word'])
-        data.pronunciations = mock.Mock(side_effect=self.get_pronunciations)
-        self.data = data
+        self._safe = get_pronunciation_examples.DataGetters
+        self.data_getters = DataGetter(['a','b'], ['a', 'b'], ['word'])
+    def tearDown(self):
+        get_pronunciation_examples.DataGetters = self._safe
+
 
 class GetPronunciationExamplesTest(FakeDataGettersTest):
     def setUp(self):
@@ -166,21 +170,29 @@ class GetPronunciationExamplesTest(FakeDataGettersTest):
             return []
 
     def test_one_word(self):
-        examples = self.fun('dutch', 1)
+        self.data_getters = DataGetter(['a','b'], ['ab'], ['word'])
+        examples = self.fun(
+            'dutch',
+            max_words=1)
         self.assertItemsEqual(examples.keys(), ['a', 'b'])
         self.assertItemsEqual(examples['a'], ['word'])
 
     def test_no_word(self):
-        self.data.words = mock.Mock(return_value=['notinlist'])
-        examples = self.fun('dutch', 1)
+        self.data_getters._words = ['notinlist']
+        examples = self.fun(
+            'dutch',
+            max_words=1)
         self.assertItemsEqual(examples['a'], [])
 
     def test_stop_when_minimum_examples_reached(self):
-        self.data.phonemes = mock.Mock(return_value=['a'])
-        self.data.words = mock.Mock(return_value=['word', '1', '2'])
-        examples = self.fun('dutch', 3, minimum_examples=1)
+        self.data_getters = DataGetter(
+            ['a'],
+            ['a'],
+            ['word', '1', '2'])
+        self.data_getters.pronunciations = mock.Mock(return_value=['a'])
+        examples = self.fun('dutch', max_words=3, minimum_examples=1)
         self.assertItemsEqual(examples['a'], ['word'])
-        self.assertEqual(self.data.pronunciations.call_count, 1)
+        self.assertEqual(self.data_getters.pronunciations.call_count, 1)
 
 
 class GetProcessedIpas(FakeDataGettersTest):
@@ -197,28 +209,45 @@ class GetProcessedIpas(FakeDataGettersTest):
         self.fun = get_pronunciation_examples.get_processed_ipas
 
     def test_one_word(self):
-        examples = [x for x in self.fun('dutch', 1)]
+        self.data_getters = DataGetter(
+            ['a', "b"],
+            ['ab'],
+            ['word'])
+        examples = [x for x in self.fun(
+            'dutch',
+            data_getters=self.data_getters,
+            max_words=1)]
         word = [x for x in examples if x.word == 'word'][0]
         self.assertEqual(word.IPA_pronunciation, ['a', 'b'])
 
     def test_no_pronunciations(self):
-        self.data.words = mock.Mock(return_value=['word', 'no_pron'])
-        examples = [x for x in self.fun('dutch')]
+        self.data_getters.words = mock.Mock(return_value=['word', 'no_pron'])
+        self.data_getters.pronunciations = lambda y, x: ['a'] if x=='word' else []
+        examples = [x for x in self.fun('dutch', data_getters=self.data_getters)]
         example =  [x for x in examples if x.word == 'no_pron']
         self.assertEqual(example, [])
 
 
+class DataGetter(object):
+    def __init__(self, phonemes=None, pronunciations=None, words=None):
+        self._phonemes = phonemes
+        self._pronunciations = pronunciations
+        self._words = words
+    def phonemes(self, language):
+        return self._phonemes
+    def pronunciations(self, language, word):
+        return self._pronunciations
+    def words(self, language):
+        return self._words
+
+
 class PronunciationFactoryTest(testcase.BaseTestCase):
     def test_create_good(self):
-        factory = get_pronunciation_examples.PronunciationFactory(['a'])
-        pronunciation = factory.create('aaa')
+        data_getter = DataGetter(phonemes=['a'])
+        factory = get_pronunciation_examples.PronunciationFactory(data_getter, '')
+        pronunciation = factory._create('aaa')
         expected_type = get_pronunciation_examples.Pronunciation
-        self.assertTrue(isinstance(pronunciation, expected_type))
-
-    def test_assert_raises_bad(self):
-        factory = get_pronunciation_examples.PronunciationFactory(['a'])
-        with self.assertRaises(ValueError):
-            factory.create('bbb')
+        self.assertTrue(isinstance(pronunciation.next(), expected_type))
 
     @params(
             ('one phoneme', ['a'], 1),
@@ -229,8 +258,11 @@ class PronunciationFactoryTest(testcase.BaseTestCase):
             )
     def test_create_multiple(self, _, entry, number_created):
         test_factory = get_pronunciation_examples.PronunciationFactory
-        factory = test_factory(available_phonemes)
-        IPAs = [x for x in factory.create_multiple(entry)]
+        data_getter = DataGetter(
+            phonemes = available_phonemes,
+            pronunciations = entry)
+        factory = test_factory(data_getter, '')
+        IPAs = [x for x in factory.create_multiple_pronunciations('Word')]
         self.assertEqual(len(IPAs), number_created)
 
 
