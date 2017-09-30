@@ -17,9 +17,17 @@ def _all_have_same_length(items):
 class DataGetters(object):
     """ datastructure to hold different functions to get data
     """
-    phonemes = staticmethod(get_phonemes.get_phonemes)
-    words = staticmethod(get_frequent_words.get_frequency_list)
-    pronunciations = staticmethod(get_pronunciations.get_pronunciations)
+    def __init__(self, language):
+        self._language = language
+
+    def phonemes(self):
+        return get_phonemes.get_phonemes(self._language)
+
+    def words(self):
+        return get_frequent_words.get_frequency_list(self._language)
+
+    def pronunciations(self, word):
+        return get_pronunciations.get_pronunciations(self._language, word)
 
 
 class DatabaseDataGetters(DataGetters):
@@ -41,26 +49,6 @@ def _get_equal_phonemes(pronunciations):
         if all(pronunciation[i] == phoneme for pronunciation in pronunciations)
     ]
     return set(equal_phonemes)
-
-
-class PronunciationFactory(object):
-    def __init__(self, data_getters, language):
-        self.data_getters = data_getters
-        self.phonemes = data_getters.phonemes(language)
-        self.language = language
-
-    def create_multiple_pronunciations(self, word):
-        pronunciations = self.data_getters.pronunciations(self.language, word)
-        if not pronunciations:
-            return []
-        return list(self._create(pronunciations))
-
-    def _create(self, pronunciations):
-        for pronunciation in pronunciations:
-            try:
-                yield Pronunciation(pronunciation, self.phonemes)
-            except ValueError:
-                continue
 
 
 class Pronunciation(object):
@@ -102,7 +90,6 @@ class Pronunciation(object):
 class PronunciationExamples(object):
     def __init__(self, phonemes, minimum_examples=0, maximum_examples=5):
         self._examples = {key: [] for key in phonemes}
-        #self._factory = PronunciationFactory(phonemes)
         assert minimum_examples <= maximum_examples
         self.maximum_examples = maximum_examples
         self.minimum_examples = minimum_examples
@@ -113,7 +100,6 @@ class PronunciationExamples(object):
                 ('ab', 'ac'-> only phoneme 'a')
         unequal lengths 'abc', 'bc' will be all ignored till better algorithm
         """
-        #pronunciations_IPA = self._factory.create_multiple(pronunciations)
         pronunciations_IPA = list(pronunciations)
         if pronunciations_IPA and _all_have_same_length(pronunciations_IPA):
             phonemes = _get_equal_phonemes(pronunciations_IPA)
@@ -146,6 +132,25 @@ class PronunciationExamples(object):
         return self._examples.values()
 
 
+class PronunciationFactory(object):
+    def __init__(self, data_getters):
+        self.data_getters = data_getters
+        self.phonemes = data_getters.phonemes()
+
+    def create_multiple_pronunciations(self, word):
+        pronunciations = self.data_getters.pronunciations(word)
+        if not pronunciations:
+            return []
+        return list(self._create(pronunciations))
+
+    def _create(self, pronunciations):
+        for pronunciation in pronunciations:
+            try:
+                yield Pronunciation(pronunciation, self.phonemes)
+            except ValueError:
+                continue
+
+
 def get_pronunciation_examples(language, use_database="not", db_config=None, max_words=10, **kwargs):
     """ get the pronunciation examples for a certain language
     Arguments:
@@ -154,10 +159,11 @@ def get_pronunciation_examples(language, use_database="not", db_config=None, max
     """
     if use_database != "not":
         raise NotImplementedError
-    phonemes = DataGetters.phonemes(language)
-    frequent_words = DataGetters.words(language)
+    data_getters = DataGetters(language)
+    phonemes = data_getters.phonemes()
+    frequent_words = data_getters.words()
     examples = PronunciationExamples(phonemes, **kwargs)
-    factory = PronunciationFactory(DataGetters, language)
+    factory = PronunciationFactory(data_getters)
     for word in frequent_words[:max_words]:
         pronunciations = list(factory.create_multiple_pronunciations(word))
         if pronunciations:
@@ -167,9 +173,10 @@ def get_pronunciation_examples(language, use_database="not", db_config=None, max
     return examples
 
 
-def get_processed_ipas(language, data_getters=DataGetters, max_words=15):
-    frequent_words = data_getters.words(language)
-    factory = PronunciationFactory(data_getters, language)
+def get_processed_ipas(language, data_getters_class=DataGetters, max_words=15):
+    data_getters = data_getters_class(language)
+    frequent_words = data_getters.words()
+    factory = PronunciationFactory(data_getters)
     for i, word in enumerate(frequent_words):
         if max_words == i:
             break

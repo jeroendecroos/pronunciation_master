@@ -151,7 +151,7 @@ class FakeDataGettersTest(testcase.BaseTestCase):
 
     def setUp(self):
         self._safe = get_pronunciation_examples.DataGetters
-        self.data_getters = DataGetter(['a','b'], ['a', 'b'], ['word'])
+        self.data_getters = create_data_getter_fake(['a','b'], ['a', 'b'], ['word'])
     def tearDown(self):
         get_pronunciation_examples.DataGetters = self._safe
 
@@ -170,7 +170,7 @@ class GetPronunciationExamplesTest(FakeDataGettersTest):
             return []
 
     def test_one_word(self):
-        self.data_getters = DataGetter(['a','b'], ['ab'], ['word'])
+        self.data_getters = create_data_getter_fake(['a','b'], ['ab'], ['word'])
         examples = self.fun(
             'dutch',
             max_words=1)
@@ -185,7 +185,7 @@ class GetPronunciationExamplesTest(FakeDataGettersTest):
         self.assertItemsEqual(examples['a'], [])
 
     def test_stop_when_minimum_examples_reached(self):
-        self.data_getters = DataGetter(
+        self.data_getters = create_data_getter_fake(
             ['a'],
             ['a'],
             ['word', '1', '2'])
@@ -209,13 +209,13 @@ class GetProcessedIpas(FakeDataGettersTest):
         self.fun = get_pronunciation_examples.get_processed_ipas
 
     def test_one_word(self):
-        self.data_getters = DataGetter(
+        self.data_getters = create_data_getter_fake(
             ['a', "b"],
             ['ab'],
             ['word'])
         examples = [x for x in self.fun(
             'dutch',
-            data_getters=self.data_getters,
+            data_getters_class=self.data_getters,
             max_words=1)]
         word = [x for x in examples if x.word == 'word'][0]
         self.assertEqual(word.IPA_pronunciation, ['a', 'b'])
@@ -223,28 +223,31 @@ class GetProcessedIpas(FakeDataGettersTest):
     def test_no_pronunciations(self):
         self.data_getters.words = mock.Mock(return_value=['word', 'no_pron'])
         self.data_getters.pronunciations = lambda y, x: ['a'] if x=='word' else []
-        examples = [x for x in self.fun('dutch', data_getters=self.data_getters)]
+        examples = [x for x in self.fun('dutch', data_getters_class=self.data_getters)]
         example =  [x for x in examples if x.word == 'no_pron']
         self.assertEqual(example, [])
 
 
-class DataGetter(object):
-    def __init__(self, phonemes=None, pronunciations=None, words=None):
-        self._phonemes = phonemes
-        self._pronunciations = pronunciations
-        self._words = words
-    def phonemes(self, language):
-        return self._phonemes
-    def pronunciations(self, language, word):
-        return self._pronunciations
-    def words(self, language):
-        return self._words
+def create_data_getter_fake(phonemes=None, pronunciations=None, words=None):
+    class DataGetterFake(object):
+        def __init__(self, language=None):
+            self._language = language
+        def phonemes(self):
+            return self._phonemes
+        def pronunciations(self, word):
+            return self._pronunciations
+        def words(self):
+            return self._words
+    DataGetterFake._pronunciations = pronunciations
+    DataGetterFake._phonemes = phonemes
+    DataGetterFake._words = words
+    return DataGetterFake
 
 
 class PronunciationFactoryTest(testcase.BaseTestCase):
     def test_create_good(self):
-        data_getter = DataGetter(phonemes=['a'])
-        factory = get_pronunciation_examples.PronunciationFactory(data_getter, '')
+        data_getter = create_data_getter_fake(phonemes=['a'])('')
+        factory = get_pronunciation_examples.PronunciationFactory(data_getter)
         pronunciation = factory._create('aaa')
         expected_type = get_pronunciation_examples.Pronunciation
         self.assertTrue(isinstance(pronunciation.next(), expected_type))
@@ -258,10 +261,10 @@ class PronunciationFactoryTest(testcase.BaseTestCase):
             )
     def test_create_multiple(self, _, entry, number_created):
         test_factory = get_pronunciation_examples.PronunciationFactory
-        data_getter = DataGetter(
+        data_getter = create_data_getter_fake(
             phonemes = available_phonemes,
-            pronunciations = entry)
-        factory = test_factory(data_getter, '')
+            pronunciations = entry)()
+        factory = test_factory(data_getter)
         IPAs = [x for x in factory.create_multiple_pronunciations('Word')]
         self.assertEqual(len(IPAs), number_created)
 
