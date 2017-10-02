@@ -138,3 +138,21 @@ class Table(sqlalchemy.Table):
                                  )
                              ]
         return isinstance(e.orig, psycopg2.IntegrityError) and e.orig.pgcode in valid_error_codes
+
+
+    def get_data(self, column=None, specifications=None, order_by=None):
+        selector = self.select()
+        if specifications:
+            selector = selector.where(
+            sqlalchemy.and_(getattr(self.c, key) == value
+                            for key, value in specifications.iteritems()
+            ))
+        if order_by:
+            selector = selector.order_by(getattr(self.c, order_by))
+        results = selector.execute().fetchall()
+        if column:
+            results = [x[column] for x in results]
+        return results
+
+
+

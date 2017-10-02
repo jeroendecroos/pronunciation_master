@@ -77,6 +77,9 @@ def given_there_is_the_following_in_the_table_group1(step, table_name):
 @step(u'Given I want to get the data from the database')
 def given_i_want_to_get_the_data_from_the_database(_):
     world.db_config = DB_CONFIG_FILEPATH
+    world.use_database = 'only'
+    if hasattr(world, 'minimum_examples'):
+        del world.minimum_examples
 
 
 @step
@@ -106,7 +109,9 @@ def ask_for_pronunciation_examples(_):
             'maximum_words_to_try',
             'minimum_examples',
             'maximum_examples',
-            'db_config'],
+            'use_database',
+            'db_config',
+        ],
         _stdout_dict_parser
         )
 
@@ -247,6 +252,7 @@ def check_dict(step):
     for test_key, test_values in tests.iteritems():
         for value in test_values:
             debug_text = (value, test_key, world.stdout.get(test_key, world.stdout))
+            assert test_key in world.stdout, debug_text
             assert value in world.stdout[test_key], debug_text
 
 

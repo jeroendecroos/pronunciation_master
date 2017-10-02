@@ -4,6 +4,7 @@
 import functools
 
 import commandline
+import database
 import get_phonemes
 import get_pronunciations
 import get_frequent_words
@@ -17,11 +18,14 @@ def _all_have_same_length(items):
 class DataGetters(object):
     """ datastructure to hold different functions to get data
     """
+    _phonemes = None
     def __init__(self, language):
         self._language = language
 
     def phonemes(self):
-        return get_phonemes.get_phonemes(self._language)
+        if self._phonemes is None:
+            self._phonemes = get_phonemes.get_phonemes(self._language)
+        return self._phonemes
 
     def words(self):
         return get_frequent_words.get_frequency_list(self._language)
@@ -29,13 +33,64 @@ class DataGetters(object):
     def pronunciations(self, word):
         return get_pronunciations.get_pronunciations(self._language, word)
 
+    def IPA_pronunciations(self, word):
+        pronunciations = self.pronunciations(word)
+        if not pronunciations:
+            return []
+        return list(self._create(pronunciations))
+
+    def _create(self, pronunciations):
+        for pronunciation in pronunciations:
+            try:
+                yield Pronunciation.from_original(pronunciation, self.phonemes())
+            except ValueError:
+                continue
 
 class DatabaseDataGetters(DataGetters):
     """ gets data from database.
     """
-    phonemes = staticmethod(get_phonemes.get_phonemes)
-    words = staticmethod(get_frequent_words.get_frequency_list)
-    pronunciations = staticmethod(get_pronunciations.get_pronunciations)
+
+    _phonemes = None
+
+    def __init__(self, language, db_config):
+        super(DatabaseDataGetters, self).__init__(language)
+        self.db_engine = database.create_engine(db_config)
+        self.tables = {name: database.Table.from_database(name, self.db_engine)
+                       for name in ['phonemes', 'word_frequencies', 'pronunciations']}
+    def phonemes(self):
+        if self._phonemes is None:
+            self._phonemes = self.tables['phonemes'].get_data(
+                                column='ipa',
+                                specifications={'language' : self._language}
+                                )
+        return self._phonemes
+
+
+    def words(self):
+        return self.tables['word_frequencies'].get_data(
+                    column='word',
+                    specifications={'language' : self._language},
+                    order_by='ranking')
+
+    def pronunciations(self, word):
+        return self.tables['pronunciations'].get_data(
+                    column = 'original_pronunciation',
+                    specifications={
+                        'language' : self._language,
+                        'word': word,
+                        },
+                    )
+
+    def IPA_pronunciations(self, word):
+        raw_pronunciations = self.tables['pronunciations'].get_data(
+                    column = 'ipa_pronunciation',
+                    specifications={
+                        'language' : self._language,
+                        'word': word,
+                        },
+                    )
+        return [x.split(',') for x in raw_pronunciations]
+
 
 
 def _get_equal_phonemes(pronunciations):
@@ -54,10 +109,20 @@ def _get_equal_phonemes(pronunciations):
 class Pronunciation(object):
     """ class to split up to hold pronunciations data
     """
-    def __init__(self, pronunciation, phonemes):
+    @classmethod
+    def from_original(cls, pronunciation, phonemes):
+        self = cls()
         self._phonemes = sorted(phonemes, key=len, reverse=True)
         self.original_pronunciation = pronunciation
         self.IPA_pronunciation = self._split_into_phonemes(pronunciation)
+        return self
+
+    @classmethod
+    def from_IPA(cls, IPA_pronunciation, original=None):
+        self = cls()
+        self.original_pronunciation = original
+        self.IPA_pronunciation = IPA_pronunciation
+        return self
 
     def __iter__(self):
         return iter(self.IPA_pronunciation)
@@ -132,24 +197,6 @@ class PronunciationExamples(object):
         return self._examples.values()
 
 
-class PronunciationFactory(object):
-    def __init__(self, data_getters):
-        self.data_getters = data_getters
-        self.phonemes = data_getters.phonemes()
-
-    def create_multiple_pronunciations(self, word):
-        pronunciations = self.data_getters.pronunciations(word)
-        if not pronunciations:
-            return []
-        return list(self._create(pronunciations))
-
-    def _create(self, pronunciations):
-        for pronunciation in pronunciations:
-            try:
-                yield Pronunciation(pronunciation, self.phonemes)
-            except ValueError:
-                continue
-
 
 def get_pronunciation_examples(language, use_database="not", db_config=None, max_words=10, **kwargs):
     """ get the pronunciation examples for a certain language
@@ -158,14 +205,12 @@ def get_pronunciation_examples(language, use_database="not", db_config=None, max
         max_words = maximum number of words to try
     """
     if use_database != "not":
-        raise NotImplementedError
-    data_getters = DataGetters(language)
-    phonemes = data_getters.phonemes()
-    frequent_words = data_getters.words()
-    examples = PronunciationExamples(phonemes, **kwargs)
-    factory = PronunciationFactory(data_getters)
-    for word in frequent_words[:max_words]:
-        pronunciations = list(factory.create_multiple_pronunciations(word))
+        data_getters = DatabaseDataGetters(language, db_config)
+    else:
+        data_getters = DataGetters(language)
+    examples = PronunciationExamples(data_getters.phonemes(), **kwargs)
+    for word in data_getters.words()[:max_words]:
+        pronunciations = list(data_getters.IPA_pronunciations(word))
         if pronunciations:
             examples.add_pronunciations(word, pronunciations)
         if examples.reached_minimum():
@@ -175,12 +220,10 @@ def get_pronunciation_examples(language, use_database="not", db_config=None, max
 
 def get_processed_ipas(language, data_getters_class=DataGetters, max_words=15):
     data_getters = data_getters_class(language)
-    frequent_words = data_getters.words()
-    factory = PronunciationFactory(data_getters)
-    for i, word in enumerate(frequent_words):
+    for i, word in enumerate(data_getters.words()):
         if max_words == i:
             break
-        pronunciations = list(factory.create_multiple_pronunciations(word))
+        pronunciations = list(data_getters.IPA_pronunciations(word))
         for pronunciation in pronunciations:
             pronunciation.word = word
             yield pronunciation

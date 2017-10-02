@@ -210,6 +210,66 @@ class TableTest(DataBaseTestCase):
             [x.name for x in table_target.columns])
 
 
+class TableGetDataTest(DataBaseTestCase):
+
+    def create_table(self):
+        structure = {
+            'number': {'type': 'Integer'},
+            'name': {'type': 'String'},
+            }
+        config_file = self._create_test_config(database=None)
+        db = database.create_engine(config_file)
+        table = database.Table.from_config("hello", {'Columns': structure}, db)
+        table.create(db)
+        self.init_data = [{'number': i,
+                      'name': 'oneven' if i%2 else 'even',
+                      }
+                     for i in range(10)]
+        table.add_data(self.init_data)
+        return table
+
+
+    def test_get_all(self):
+        table = self.create_table()
+        results = table.get_data()
+        self.assertItemsEqual(
+            [dict(x) for x in results],
+            self.init_data
+            )
+
+    @params(
+            ("one", {'name':'even'}),
+            ("two", {'name':'even', 'number': 3}),
+            )
+    def test_get_with_constraint(self, _, constraints):
+        table = self.create_table()
+        results = table.get_data(specifications=constraints)
+        expected = [d for d in self.init_data
+                    if all(d[k] == v for k, v in constraints.iteritems())]
+        self.assertItemsEqual(
+            [dict(x) for x in results],
+            expected
+            )
+
+    def test_get_with_column(self):
+        table = self.create_table()
+        results = table.get_data(column='number')
+        expected = [d['number'] for d in self.init_data]
+        self.assertItemsEqual(
+            results,
+            expected
+            )
+
+    def test_get_with_ordering(self):
+        table = self.create_table()
+        results = table.get_data(order_by='name')
+        expected = [d for d in self.init_data if d['name']=='even']
+        expected += [d for d in self.init_data if d['name']=='oneven']
+        self.assertItemsEqual(
+            [dict(x) for x in results],
+            expected
+            )
+
 class DatabaseTest(DataBaseTestCase):
     def test_init(self):
         config_file = self._create_test_config()

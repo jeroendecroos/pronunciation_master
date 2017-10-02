@@ -18,6 +18,7 @@ class ArgumentParserTest(testcase.BaseTestCase):
         ('minimum_examples', '1', 1),
         ('maximum_examples', '1', 1),
         ('db_config', 'blabla', 'blabla'),
+        ('use_database', 'only', 'only'),
         )
     def test_add_parameter(self, parameter_name, input_value, return_value):
         parser = commandline.ArgumentParser()
@@ -70,6 +71,10 @@ class XInputTest(testcase.BaseTestCase):
         (commandline.LanguageAndWordInput,
          ['--language', 'test',
           '--word', 'wtest']
+        ),
+        (commandline.LanguageAndDatabaseInput,
+         ['--language', 'test',
+          '--db_config', 'some']
         ),
         )
     def test_arguments(self, parser, test_arguments):

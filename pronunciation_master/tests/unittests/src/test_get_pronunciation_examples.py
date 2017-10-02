@@ -1,12 +1,148 @@
 import unittest
+import testing.postgresql
+import psycopg2
 from nose2.tools import params
 import mock
+import os
+import json
 
-from pronunciation_master.tests.testlib import testcase
+from pronunciation_master.tests.testlib import testcase, project_vars
 from pronunciation_master.src import get_pronunciation_examples
 
 available_phonemes = ['a', 'b', 'c']
+PASSWORD = 'dog'
 
+
+def handler(postgresql):
+    conn = psycopg2.connect(**postgresql.dsn(password="None"))
+    cursor = conn.cursor()
+    cursor.execute("ALTER USER postgres PASSWORD '{}'".format(PASSWORD))
+    cursor.close()
+    conn.commit()
+    conn.close()
+
+
+Postgresql = testing.postgresql.PostgresqlFactory(
+    cache_initialized_db=True,
+    on_initialized=handler)
+
+
+def tearDownModule():
+    Postgresql.clear_cache()
+
+
+def _project_config():
+    config_file = os.path.join(project_vars.ASSETS_DIR, 'db_config.test.json')
+    with open(config_file) as json_data_file:
+        config = json.load(json_data_file)
+    return config_file
+
+
+
+class DataGettersTest(testcase.BaseTestCase):
+
+    def data_getter(self):
+        return get_pronunciation_examples.DataGetters('l')
+
+    @mock.patch('pronunciation_master.src.get_phonemes.get_phonemes')
+    def test_phonemes(self, mock_phonemes):
+        mock_phonemes.return_value = ['a']
+        data_getter = self.data_getter()
+        self.assertItemsEqual(
+            data_getter.phonemes(),
+            ['a']
+            )
+    @mock.patch('pronunciation_master.src.get_phonemes.get_phonemes')
+    def test_phonemes_called_twice(self, mock_phonemes):
+        mock_phonemes.return_value = ['a']
+        data_getter = self.data_getter()
+        data_getter.phonemes(),
+        self.assertItemsEqual(
+            data_getter.phonemes(),
+            ['a']
+            )
+        self.assertEqual(mock_phonemes.call_count, 1)
+
+
+    @mock.patch('pronunciation_master.src.get_frequent_words.get_frequency_list')
+    def test_words(self, mock_frequency):
+        mock_frequency.return_value = ['a']
+        data_getter = self.data_getter()
+        self.assertItemsEqual(
+            data_getter.words(),
+            ['a']
+            )
+
+    @mock.patch('pronunciation_master.src.get_pronunciations.get_pronunciations')
+    def test_pronunciations(self, mock_pronunciations):
+        mock_pronunciations.return_value = [['a']]
+        data_getter = self.data_getter()
+        self.assertItemsEqual(
+            data_getter.pronunciations('w'),
+            [['a']]
+            )
+
+
+    @mock.patch('pronunciation_master.src.get_pronunciations.get_pronunciations')
+    def test_pronunciations(self, mock_pronunciations):
+        mock_pronunciations.return_value = None
+        data_getter = self.data_getter()
+        self.assertItemsEqual(
+            data_getter.IPA_pronunciations('w'),
+            [],
+            )
+
+class DatabaseDataGettersTest(testcase.BaseTestCase):
+
+    def data_getter(self):
+        return get_pronunciation_examples.DatabaseDataGetters('lang', _project_config())
+
+    @mock.patch('pronunciation_master.src.database.Table.get_data')
+    def test_phonemes(self, mock_phonemes):
+        mock_phonemes.return_value = ['a']
+        data_getter = self.data_getter()
+        self.assertItemsEqual(
+            data_getter.phonemes(),
+            ['a']
+            )
+
+    @mock.patch('pronunciation_master.src.database.Table.get_data')
+    def test_phonemes_called_twice(self, mock_phonemes):
+        mock_phonemes.return_value = ['a']
+        data_getter = self.data_getter()
+        data_getter.phonemes(),
+        self.assertItemsEqual(
+            data_getter.phonemes(),
+            ['a']
+            )
+        self.assertEqual(mock_phonemes.call_count, 1)
+
+    @mock.patch('pronunciation_master.src.database.Table.get_data')
+    def test_words(self, mock_frequency):
+        mock_frequency.return_value = ['a']
+        data_getter = self.data_getter()
+        self.assertItemsEqual(
+            data_getter.words(),
+            ['a']
+            )
+
+    @mock.patch('pronunciation_master.src.database.Table.get_data')
+    def test_pronunciations(self, mock_pronunciations):
+        mock_pronunciations.return_value = [['a']]
+        data_getter = self.data_getter()
+        self.assertItemsEqual(
+            data_getter.pronunciations('w'),
+            [['a']]
+            )
+
+    @mock.patch('pronunciation_master.src.database.Table.get_data')
+    def test_IPA_pronunciations(self, mock_pronunciations):
+        mock_pronunciations.return_value = ['a,b']
+        data_getter = self.data_getter()
+        self.assertItemsEqual(
+            data_getter.IPA_pronunciations('w'),
+            [['a', 'b']]
+            )
 
 class PronunciationExamplesTest(testcase.BaseTestCase):
     def setUp(self):
@@ -148,12 +284,15 @@ class FakeDataGettersTest(testcase.BaseTestCase):
     def data_getters(self, data_getter):
         self._data_getters = data_getter
         get_pronunciation_examples.DataGetters = self.data_getters
+        get_pronunciation_examples.DatabaseDataGetters = self.data_getters
 
     def setUp(self):
         self._safe = get_pronunciation_examples.DataGetters
+        self._safe2 = get_pronunciation_examples.DatabaseDataGetters
         self.data_getters = create_data_getter_fake(['a','b'], ['a', 'b'], ['word'])
     def tearDown(self):
         get_pronunciation_examples.DataGetters = self._safe
+        get_pronunciation_examples.DatabaseDataGetters = self._safe2
 
 
 class GetPronunciationExamplesTest(FakeDataGettersTest):
@@ -174,6 +313,16 @@ class GetPronunciationExamplesTest(FakeDataGettersTest):
         examples = self.fun(
             'dutch',
             max_words=1)
+        self.assertItemsEqual(examples.keys(), ['a', 'b'])
+        self.assertItemsEqual(examples['a'], ['word'])
+
+    def test_use_database(self):
+        self.data_getters = create_data_getter_fake(['a','b'], ['ab'], ['word'])
+        examples = self.fun(
+            'dutch',
+            max_words=1,
+            use_database='only',
+            )
         self.assertItemsEqual(examples.keys(), ['a', 'b'])
         self.assertItemsEqual(examples['a'], ['word'])
 
@@ -212,7 +361,7 @@ class GetProcessedIpas(FakeDataGettersTest):
         self.data_getters = create_data_getter_fake(
             ['a', "b"],
             ['ab'],
-            ['word'])
+            ['word', 'boss'])
         examples = [x for x in self.fun(
             'dutch',
             data_getters_class=self.data_getters,
@@ -230,7 +379,7 @@ class GetProcessedIpas(FakeDataGettersTest):
 
 def create_data_getter_fake(phonemes=None, pronunciations=None, words=None):
     class DataGetterFake(object):
-        def __init__(self, language=None):
+        def __init__(self, language=None, *args, **kwargs):
             self._language = language
         def phonemes(self):
             return self._phonemes
@@ -238,17 +387,22 @@ def create_data_getter_fake(phonemes=None, pronunciations=None, words=None):
             return self._pronunciations
         def words(self):
             return self._words
+        def IPA_pronunciations(self, word):
+            IPA = getattr(self, '_IPA_pronunciations', [[c for c in x] for x in self.pronunciations(word)])
+            return [get_pronunciation_examples.Pronunciation.from_IPA(i)
+                    for i in IPA]
+
     DataGetterFake._pronunciations = pronunciations
     DataGetterFake._phonemes = phonemes
     DataGetterFake._words = words
     return DataGetterFake
 
 
-class PronunciationFactoryTest(testcase.BaseTestCase):
+class DataGetterIPAPronunciationTest(testcase.BaseTestCase):
     def test_create_good(self):
-        data_getter = create_data_getter_fake(phonemes=['a'])('')
-        factory = get_pronunciation_examples.PronunciationFactory(data_getter)
-        pronunciation = factory._create('aaa')
+        data_getter = get_pronunciation_examples.DataGetters('')
+        data_getter._phonemes = ['a']
+        pronunciation = data_getter._create('aaa')
         expected_type = get_pronunciation_examples.Pronunciation
         self.assertTrue(isinstance(pronunciation.next(), expected_type))
 
@@ -260,18 +414,16 @@ class PronunciationFactoryTest(testcase.BaseTestCase):
             ('one right, one partialy wrong', ['ab', 'ax'], 1),
             )
     def test_create_multiple(self, _, entry, number_created):
-        test_factory = get_pronunciation_examples.PronunciationFactory
-        data_getter = create_data_getter_fake(
-            phonemes = available_phonemes,
-            pronunciations = entry)()
-        factory = test_factory(data_getter)
-        IPAs = [x for x in factory.create_multiple_pronunciations('Word')]
+        data_getter = get_pronunciation_examples.DataGetters('')
+        data_getter._phonemes = available_phonemes
+        data_getter.pronunciations = mock.Mock(return_value=entry)
+        IPAs = [x for x in data_getter.IPA_pronunciations('Word')]
         self.assertEqual(len(IPAs), number_created)
 
 
 class PronunciationTest(testcase.BaseTestCase):
     def setUp(self):
-        self.creator = get_pronunciation_examples.Pronunciation
+        self.creator = get_pronunciation_examples.Pronunciation.from_original
 
     @params(('one phoneme', 'a', ['a']),
             ('two equal phonemes', 'aa', ['a', 'a']),

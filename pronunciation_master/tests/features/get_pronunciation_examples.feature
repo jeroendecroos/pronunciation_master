@@ -79,7 +79,7 @@ Feature: Get pronunciation examples for language XXX
         Given there is the following in the table "pronunciations":
         | word | original_pronunciation | ipa_pronunciation |
         | ik   | ik                     | i,k               |
-        | me   | me                     | m,e               |
+        | me   | mi                     | m,i               |
         | mik  | mik                    | m,i,k             |
         Given I want to get the data from the database
         When I ask for pronunciation examples
