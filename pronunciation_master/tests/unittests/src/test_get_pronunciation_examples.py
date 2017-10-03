@@ -92,6 +92,7 @@ class DataGettersTest(testcase.BaseTestCase):
             [],
             )
 
+
 class DatabaseDataGettersTest(testcase.BaseTestCase):
 
     def data_getter(self):
@@ -143,6 +144,36 @@ class DatabaseDataGettersTest(testcase.BaseTestCase):
             data_getter.IPA_pronunciations('w'),
             [['a', 'b']]
             )
+
+
+    @mock.patch('pronunciation_master.src.get_pronunciations.get_pronunciations')
+    def test_fallback(self, mock_pronunciations):
+        mock_pronunciations.return_value = 5
+        data_getter = self.data_getter()
+        data_getter.fallback = True
+        self.assertEqual(
+            data_getter._try_fallback(None, 'pronunciations'),
+            5,
+            )
+
+    def test_fallback_no_action(self):
+        data_getter = self.data_getter()
+        data_getter.fallback = True
+        self.assertEqual(
+            data_getter._try_fallback(5, 'pronunciations', fail=False),
+            5,
+            )
+
+    @mock.patch('pronunciation_master.src.get_pronunciations.get_pronunciations')
+    def test_fallback_fail(self, mock_pronunciations):
+        mock_pronunciations.return_value = None
+        data_getter = self.data_getter()
+        data_getter.fallback = True
+        with self.assertRaises(RuntimeError):
+            data_getter._try_fallback(
+                None,
+                'pronunciations',
+                fail=True)
 
 class PronunciationExamplesTest(testcase.BaseTestCase):
     def setUp(self):

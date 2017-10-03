@@ -74,10 +74,10 @@ def given_there_is_the_following_in_the_table_group1(step, table_name):
             connection.execute(statement)
 
 
-@step(u'Given I want to get the data from the database')
-def given_i_want_to_get_the_data_from_the_database(_):
+@step(u'Given I want to get the data from the database "(.*)"')
+def given_i_want_to_get_the_data_from_the_database(_, mode):
     world.db_config = DB_CONFIG_FILEPATH
-    world.use_database = 'only'
+    world.use_database = mode
     if hasattr(world, 'minimum_examples'):
         del world.minimum_examples
 

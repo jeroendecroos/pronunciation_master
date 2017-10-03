@@ -23,7 +23,7 @@ class DataGetters(object):
         self._language = language
 
     def phonemes(self):
-        if self._phonemes is None:
+        if not self._phonemes:
             self._phonemes = get_phonemes.get_phonemes(self._language)
         return self._phonemes
 
@@ -52,9 +52,10 @@ class DatabaseDataGetters(DataGetters):
 
     _phonemes = None
 
-    def __init__(self, language, db_config):
+    def __init__(self, language, db_config, fallback=False):
         super(DatabaseDataGetters, self).__init__(language)
         self.db_engine = database.create_engine(db_config)
+        self.fallback = fallback
         self.tables = {name: database.Table.from_database(name, self.db_engine)
                        for name in ['phonemes', 'word_frequencies', 'pronunciations']}
     def phonemes(self):
@@ -63,23 +64,40 @@ class DatabaseDataGetters(DataGetters):
                                 column='ipa',
                                 specifications={'language' : self._language}
                                 )
+        self._phonemes = self._try_fallback(
+            self._phonemes,
+            'phonemes',
+            fail=True,
+            )
         return self._phonemes
 
-
     def words(self):
-        return self.tables['word_frequencies'].get_data(
+        _words = self.tables['word_frequencies'].get_data(
                     column='word',
                     specifications={'language' : self._language},
                     order_by='ranking')
+        _words = self._try_fallback(
+            _words,
+            'words',
+            fail=True,
+            )
+        return _words
 
     def pronunciations(self, word):
-        return self.tables['pronunciations'].get_data(
+        _pronunciations = self.tables['pronunciations'].get_data(
                     column = 'original_pronunciation',
                     specifications={
                         'language' : self._language,
                         'word': word,
                         },
                     )
+        _pronunciations = self._try_fallback(
+            _pronunciations,
+            'pronunciations',
+            fail=False,
+            args=[word],
+            )
+        return _pronunciations
 
     def IPA_pronunciations(self, word):
         raw_pronunciations = self.tables['pronunciations'].get_data(
@@ -89,8 +107,30 @@ class DatabaseDataGetters(DataGetters):
                         'word': word,
                         },
                     )
-        return [x.split(',') for x in raw_pronunciations]
+        _ipa_pronunciations = [x.split(',') for x in raw_pronunciations]
+        _ipa_pronunciations = self._try_fallback(
+            _ipa_pronunciations,
+            'IPA_pronunciations',
+            fail=False,
+            args=[word],
+            )
+        return _ipa_pronunciations
 
+    def _try_fallback(self, value, function_name, fail=True, args=None):
+        if not value:
+            if self.fallback:
+                 function = getattr(
+                     super(DatabaseDataGetters, self),
+                     function_name,
+                     )
+                 value = function(self, *args) if args else function(self)
+            if not value and fail:
+                error = "couldn't find {} for language {} and args {}"
+                raise RuntimeError(error.format(
+                    function_name,
+                    self._language,
+                    args))
+        return value
 
 
 def _get_equal_phonemes(pronunciations):
@@ -205,7 +245,8 @@ def get_pronunciation_examples(language, use_database="not", db_config=None, max
         max_words = maximum number of words to try
     """
     if use_database != "not":
-        data_getters = DatabaseDataGetters(language, db_config)
+        fallback = use_database == 'if_possible'
+        data_getters = DatabaseDataGetters(language, db_config, fallback)
     else:
         data_getters = DataGetters(language)
     examples = PronunciationExamples(data_getters.phonemes(), **kwargs)

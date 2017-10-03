@@ -81,11 +81,31 @@ Feature: Get pronunciation examples for language XXX
         | ik   | ik                     | i,k               |
         | me   | mi                     | m,i               |
         | mik  | mik                    | m,i,k             |
-        Given I want to get the data from the database
+        Given I want to get the data from the database "only":
         When I ask for pronunciation examples
         Then I see the following in the dict-list:
             | key | value |
             | i   | ik    |
             | k   | mik   |
             | m   | me    |
+
+    Scenario: use stored data if possible
+        Given there is not the database 'pronunciation_master_test'
+        Given I ask to create an empty database "pronunciation_master_test"
+        Given I have the language "dutch"
+        Given there is the following in the table "word_frequencies":
+        | word | int:ranking | int:occurances |
+        | ik   | 1           | 8106228        |
+        | me   | 2           | 7305984        |
+        | mik  | 3           | 5706767        |
+        Given there is the following in the table "pronunciations":
+        | word | original_pronunciation | ipa_pronunciation |
+        | ik   | mik                    | m,i,k               |
+        Given I want to get the data from the database "if_possible"
+        When I ask for pronunciation examples
+        Then I see the following in the dict-list:
+            | key | value |
+            | i   | ik    |
+            | k   | mik   |
+            | m   | ik    |
 
