@@ -8,6 +8,7 @@ import database
 import get_phonemes
 import get_pronunciations
 import get_frequent_words
+import language_codes
 
 
 def _all_have_same_length(items):
@@ -238,12 +239,13 @@ class PronunciationExamples(object):
 
 
 
-def get_pronunciation_examples(language, use_database="not", db_config=None, max_words=10, **kwargs):
+def get_pronunciation_examples(language, use_database="not", db_config=None, max_words=10, list_return_value=False, **kwargs):
     """ get the pronunciation examples for a certain language
     Arguments:
         Language = target language
         max_words = maximum number of words to try
     """
+    language_codes.Phoibe.check_valid_language(language)
     if use_database != "not":
         fallback = use_database == 'if_possible'
         data_getters = DatabaseDataGetters(language, db_config, fallback)
@@ -256,10 +258,13 @@ def get_pronunciation_examples(language, use_database="not", db_config=None, max
             examples.add_pronunciations(word, pronunciations)
         if examples.reached_minimum():
             break
+    if list_return_value:
+        return examples.items()
     return examples
 
 
 def get_processed_ipas(language, data_getters_class=DataGetters, max_words=15):
+    language_codes.Phoibe.check_valid_language(language)
     data_getters = data_getters_class(language)
     for i, word in enumerate(data_getters.words()):
         if max_words == i:

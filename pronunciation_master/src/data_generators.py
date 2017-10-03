@@ -74,6 +74,16 @@ class RowGenerators(object):
             list_modifier=','.join,
             buffer_size=10,
             ),
+        "pronunciation_examples": RowGenerator(
+            get_pronunciation_examples,
+            'get_pronunciation_examples',
+            ['IPA', 'examples'],
+            use_database="only",
+            max_words=10000,
+            maximum_examples=100,
+            list_return_value=True,
+            list_modifier=lambda x: x
+            ),
         }
 
     @classmethod

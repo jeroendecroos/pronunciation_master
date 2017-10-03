@@ -91,6 +91,7 @@ class Table(sqlalchemy.Table):
     @staticmethod
     def _set_column_types(columns):
         from sqlalchemy import Integer, String  # flake8: noqa
+        from sqlalchemy.dialects.postgresql import ARRAY # flake8: noqa
         for key, values in columns.iteritems():
             assert isinstance(values['type'], basestring)
             values['type'] = eval(values['type'])

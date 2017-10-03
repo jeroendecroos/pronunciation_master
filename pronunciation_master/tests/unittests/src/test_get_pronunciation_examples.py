@@ -364,6 +364,17 @@ class GetPronunciationExamplesTest(FakeDataGettersTest):
             max_words=1)
         self.assertItemsEqual(examples['a'], [])
 
+    def test_list_return_value(self):
+        self.data_getters._words = ['notinlist']
+        examples = self.fun(
+            'dutch',
+            list_return_value=True,
+            max_words=1)
+        self.assertItemsEqual(
+            examples,
+            [('a', []), ('b', [])],
+            )
+
     def test_stop_when_minimum_examples_reached(self):
         self.data_getters = create_data_getter_fake(
             ['a'],

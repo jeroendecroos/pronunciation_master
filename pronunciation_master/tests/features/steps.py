@@ -208,6 +208,9 @@ def maybe_in_the_table(step, dont_find, table_name):
                 )
         results = [dict(x) for x in connection.execute(statement)]
     for row in hashes:
+        for key, values in row.iteritems():
+            if isinstance(values, basestring) and '[' in values:
+                row[key] = eval(values)
         if dont_find:
             assert row not in results, (results[:10], row)
         else:

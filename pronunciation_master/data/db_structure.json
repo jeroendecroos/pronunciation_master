@@ -62,5 +62,25 @@
                       "Columns": ["language", "word", "original_pronunciation"],
                       "name": "pronunciations_key"
                   }
+     },
+     "pronunciation_examples": {
+                 "Columns":{
+                      "language": {
+                                   "type": "String(60)",
+                                   "kwargs": {"nullable": false}
+                                  },
+                      "ipa": {
+                                   "type": "String(60)",
+                                   "kwargs": {"nullable": false}
+                                  },
+                      "examples": {
+                                   "type": "ARRAY(String)",
+                                   "kwargs": {"nullable": false}
+                                  }
+                  },
+                  "UniqueConstraint": {
+                      "Columns": ["language", "ipa"],
+                      "name": "pronunciation_example_key"
+                  }
      }
 }
