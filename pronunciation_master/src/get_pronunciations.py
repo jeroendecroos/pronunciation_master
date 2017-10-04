@@ -36,7 +36,12 @@ def get_wiktionary_entry(language, word):
     """
     parser = WiktionaryParser()
     parser.set_default_language(language)
-    return parser.fetch(word)
+    try:
+        return parser.fetch(word)
+    except Exception as e:
+        print("problem with word {}, language {}".format(word, language))
+        print(e)
+        return []
 
 
 def filter_pronunciations(wiktionary_entry):
