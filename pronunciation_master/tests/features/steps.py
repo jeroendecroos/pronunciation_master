@@ -2,9 +2,11 @@ import collections
 import itertools
 import json
 import os
+from pymongo import MongoClient
 import re
 import sqlalchemy
 import sqlalchemy_utils
+import tempfile
 
 from lettuce import world, step
 
@@ -74,12 +76,82 @@ def given_there_is_the_following_in_the_table_group1(step, table_name):
             connection.execute(statement)
 
 
+@step(u'Given I have a mongodb with raw input')
+def given_i_have_a_mongodb_with_raw_input(step):
+    client = MongoClient()
+    db = client.pronunciation_master_test
+    collection = db.wiktionary_raw
+    document = {row['key']: row['value'] for row in step.hashes}
+    collection.insert_one(document)
+
+
+@step(u'When I ask to process into language and category')
+def when_i_ask_to_process_into_language_and_category(step):
+    world.database = 'pronunciation_master_test'
+    world.mongodb_table = "wiktionary_raw_subdivided"
+    _external_program_runner(
+        'process_mongodb.py',
+        ['database'],
+        )
+
+
+@step(u'See the following in the mongodb json')
+def i_see_the_following_in_the_mongodb_json(step):
+    for row in step.hashes:
+        assert world.mongodb_find[row['key']] == row['value']
+
+
 @step(u'Given I want to get the data from the database "(.*)"')
 def given_i_want_to_get_the_data_from_the_database(_, mode):
     world.db_config = DB_CONFIG_FILEPATH
     world.use_database = mode
     if hasattr(world, 'minimum_examples'):
         del world.minimum_examples
+
+
+@step(u'Given I have the wiktionary with entry:')
+def given_i_have_the_wiktionary_with_entry(step):
+    _, world.wiktionary = tempfile.mkstemp()
+    with open(world.wiktionary, 'wb') as outstream:
+        outstream.write('<document>\n')
+        outstream.write(step.multiline)
+        outstream.write('<\document>\n')
+
+
+@step(u'When I ask for to process into mongodb')
+def when_i_ask_for_to_process_into_mongodb(step):
+    world.database = 'pronunciation_master_test'
+    world.mongodb_table = "wiktionary_raw"
+    _external_program_runner(
+        'wiktionary_to_db.py',
+        ['wiktionary',
+         'database'],
+        )
+
+
+@step('I have an empty mongodb')
+def i_have_an_empty_mongodb(step):
+    client = MongoClient()
+    db = client.pronunciation_master_test
+    db.wiktionary_raw.drop()
+    db.wiktionary_raw_subdivided.drop()
+
+
+@step(u'When I ask to find in the mongodb')
+def when_i_ask_to_find_in_the_mongodb_one(step):
+    client = MongoClient()
+    db = client.pronunciation_master_test
+    collection = getattr(db, world.mongodb_table)
+    document = {row['key']: row['value'] for row in step.hashes}
+    world.mongodb_find = collection.find_one(document)
+    if not world.mongodb_find:
+        raise Exception('dont find anzthing for {}'.format(document))
+
+
+@step(u'Then I see the following in the mongodb')
+def i_see_the_following_in_the_mongodb(step):
+    for row in step.hashes:
+        assert world.mongodb_find[row['key']].strip() == row['value']
 
 
 @step
@@ -304,10 +376,10 @@ def _external_program_runner(program, arguments=tuple(), parser=None, positional
                  for a in sub_arguments if hasattr(world, a)}
     arguments += list(itertools.chain.from_iterable(sub_arguments.items()))
     path = os.path.join(testlib.project_vars.SRC_DIR, program)
-    if hasattr(world, 'commands'):
-        getattr(world, 'commands').append([path] + arguments)
-    else:
+    command = [path] + arguments
+    if not hasattr(world, 'commands'):
         world.commands = []
+    getattr(world, 'commands').append(command)
     stdout, stderr, _ = testlib.testrun.run_program(path, arguments)
     world.stdout_warnings, world.stderr = _seperate_warning_lines(stderr)
     world.stdout = parser(stdout) if parser else stdout
