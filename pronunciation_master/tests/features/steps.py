@@ -85,6 +85,15 @@ def given_i_have_a_mongodb_with_raw_input(step):
     collection.insert_one(document)
 
 
+@step(u'Given I have a mongodb with raw input per language')
+def given_i_have_a_mongodb_with_raw_input_per_language(step):
+    client = MongoClient()
+    db = client.pronunciation_master_test
+    collection = db.wiktionary_raw_subdivided
+    document = {row['key']: row['value'] for row in step.hashes}
+    collection.insert_one(document)
+
+
 @step(u'When I ask to process into language and category')
 def when_i_ask_to_process_into_language_and_category(step):
     world.database = 'pronunciation_master_test'
@@ -95,9 +104,21 @@ def when_i_ask_to_process_into_language_and_category(step):
         )
 
 
+@step(u'When I ask to process into pronunciation per language')
+def when_i_ask_to_process_into_pronunciation_per_language(step):
+    world.database = 'pronunciation_master_test'
+    world.mongodb_table = "wiktionary_ipa"
+    _external_program_runner(
+        'process_mongodb_ipa.py',
+        ['database'],
+        )
+
+
 @step(u'See the following in the mongodb json')
 def i_see_the_following_in_the_mongodb_json(step):
     for row in step.hashes:
+        if '[' in row['value']:
+            row['value'] = eval(row['value'])
         assert world.mongodb_find[row['key']] == row['value']
 
 
@@ -301,6 +322,7 @@ def only_once_in_the_table(step, table_name):
                 )
         results = [tuple(x) for x in connection.execute(statement)]
         assert len(set(results)) == len(results)
+
 
 def _normalize_hashes(hashes):
     def _normalize_dict(d):

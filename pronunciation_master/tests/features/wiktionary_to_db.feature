@@ -29,8 +29,26 @@ Feature: Process an offline wiktionary in xml format to a database
             | language | Dutch |
             | word     | leven |
             | section  | Pronunciation |
-            
+
+
         Then I see the following in the mongodb json:
             | key      | value |
             | content |  \n* {{IPA\|/\u02c8le\u02d0v\u0259(n)/\|lang=nl}}\n* {{rhymes\|e\u02d0v\u0259n\|lang=nl}}\n* {{audio\|Nl-leven.ogg\|audio\|lang=nl}}\n\n |
 
+
+    Scenario: raw_per_language to pronunciation per language
+        Given I have an empty mongodb
+        Given I have a mongodb with raw input per language
+            | key | value |
+            | language | Dutch |
+            | word     | leven |
+            | section  | Pronunciation |
+            | content |  \n* {{IPA\|/\u02c8le\u02d0v\u0259(n)/\|lang=nl}}\n* {{rhymes\|e\u02d0v\u0259n\|lang=nl}}\n* {{audio\|Nl-leven.ogg\|audio\|lang=nl}}\n\n |
+        When I ask to process into pronunciation per language
+        When I ask to find in the mongodb
+            | key | value |
+            | language | Dutch |
+            | word     | leven |
+        Then I see the following in the mongodb json:
+            | key | value                    |
+            | IPA | ["\u02c8le\u02d0v\u0259(n)"] |

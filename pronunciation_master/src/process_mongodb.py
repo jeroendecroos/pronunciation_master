@@ -14,8 +14,10 @@ def process_db(database):
     to_collection = db.wiktionary_raw_subdivided
     to_collection.drop()
     for doc in db.wiktionary_raw.find({}):
-        db.wiktionary_raw_subdivided.insert_many(
-            parse_doc(doc))
+        item = parse_doc(doc)
+        if item:
+            db.wiktionary_raw_subdivided.insert_many(
+                item)
 
 
 def parse_doc(document):
