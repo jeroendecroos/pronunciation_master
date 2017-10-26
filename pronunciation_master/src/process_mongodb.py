@@ -8,16 +8,21 @@ from pymongo import MongoClient
 
 
 
-def process_db(database):
+def process_db(database, word=None):
     client = MongoClient()
     db = getattr(client, database)
     to_collection = db.wiktionary_raw_subdivided
-    to_collection.drop()
-    for doc in db.wiktionary_raw.find({}):
+    if not word:
+        to_collection.drop()
+    query = word and {'title': word} or {}
+    for doc in db.wiktionary_raw.find(query):
         item = parse_doc(doc)
         if item:
             db.wiktionary_raw_subdivided.insert_many(
                 item)
+    if word:
+        l = db.wiktionary_raw_subdivided.find({'word': word, 'language': 'French'})
+        print [x for x in l]
 
 
 def parse_doc(document):
@@ -56,5 +61,6 @@ def parse_language(text):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--database', required=True)
+    parser.add_argument('--word', required=False)
     args = parser.parse_args()
-    process_db(args.database)
+    process_db(args.database, args.word)

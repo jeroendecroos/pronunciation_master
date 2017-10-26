@@ -138,6 +138,7 @@ def _get_equal_phonemes(pronunciations):
     """ gets all phonemes that are equal for each pronunciation
         unequal lengths 'abc', 'bc' will be all ignored till better algorithm
     """
+    return set(x for y in pronunciations for x in y)
     example = next(iter(pronunciations))  # set robust
     equal_phonemes = [
         phoneme
@@ -207,8 +208,9 @@ class PronunciationExamples(object):
         unequal lengths 'abc', 'bc' will be all ignored till better algorithm
         """
         pronunciations_IPA = list(pronunciations)
-        if pronunciations_IPA and _all_have_same_length(pronunciations_IPA):
-            phonemes = _get_equal_phonemes(pronunciations_IPA)
+        if pronunciations_IPA: #and _all_have_same_length(pronunciations_IPA):
+            phonemes = set(x for y in pronunciations for x in y)
+            #phonemes = _get_equal_phonemes(pronunciations_IPA)
             for phoneme in phonemes:
                 if len(self._examples[phoneme]) < self.maximum_examples:
                     assert phoneme in self._examples

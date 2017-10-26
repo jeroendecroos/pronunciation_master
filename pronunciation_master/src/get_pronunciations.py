@@ -2,6 +2,7 @@
 """
 import re
 import itertools
+from pymongo import MongoClient
 
 from wiktionaryparser import WiktionaryParser
 
@@ -19,6 +20,19 @@ def get_pronunciations(language, word):
     Returns:
         set of pronunciations set('pron1', 'pron2', ...)
     """
+    language = language.capitalize()
+    client = MongoClient()
+    db = getattr(client, 'pronunciation_master')
+    collection = db.wiktionary_ipa
+    found =  collection.find_one({
+        'language': language,
+        'word': word,
+        })
+    if found:
+        return found['IPA']
+    else:
+        return None
+
     language_code = language_codes.Wiktionary.map(language)
     wiktionary_entry = get_wiktionary_entry(language_code, word)
     pronunciation_entries = filter_pronunciations(wiktionary_entry)
@@ -34,6 +48,7 @@ def get_wiktionary_entry(language, word):
     Returns:
         parsed wiktionary page
     """
+    parser
     parser = WiktionaryParser()
     parser.set_default_language(language)
     try:
