@@ -74,12 +74,12 @@ class GetPronunciationsTest(testcase.BaseTestCase):
 
     def test_raise_bad_language(self):
         with self.assertRaises(ValueError):
-            self.fun('unknown language', 'ba')
+            self.fun('unknown language', 'ba', local=False)
 
     def test_one_pronoun_on_wiktionary(self):
         entry = {'pronunciations': ['IPA: /ba/']}
         self.get_wiktionary_entry.return_value = [entry]
-        ret = self.fun('dutch', 'bad')
+        ret = self.fun('dutch', 'bad', local=False)
         self.assertItemsEqual(ret, ['ba'])
 
 

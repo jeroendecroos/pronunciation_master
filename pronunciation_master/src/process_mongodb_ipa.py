@@ -31,7 +31,13 @@ def process_db(database, word=None):
 
 
 def process_ipa(content):
-    pronunciations = re.findall('{{.*IPA\|/?([^/|\n]*)/?\|?.*}}', content)
+    ipa_items = re.findall('{{IPA(.*?)}}', content)
+    pronunciations = set()
+    for ipa in ipa_items:
+        ipa = re.sub('lang=[^|]+', '', ipa)
+        item_pronunciations = re.split('/?\|?/?', ipa)
+        pronunciations.update(item_pronunciations)
+    pronunciations.remove(u'')
     return pronunciations
 
 
