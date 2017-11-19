@@ -10,7 +10,7 @@ import language_codes
 import commandline
 
 
-def get_pronunciations(language, word):
+def get_pronunciations(language, word, local=False):
     """ main function of module,
     gets the pronunciations for a 'word' in a 'language'
     dependency on Wiktionary (get_wiktionary_entry) to get this
@@ -20,23 +20,21 @@ def get_pronunciations(language, word):
     Returns:
         set of pronunciations set('pron1', 'pron2', ...)
     """
-    language = language.capitalize()
-    client = MongoClient()
-    db = getattr(client, 'pronunciation_master')
-    collection = db.wiktionary_ipa
-    found =  collection.find_one({
-        'language': language,
-        'word': word,
-        })
-    if found:
-        return found['IPA']
-    else:
-        return None
-
     language_code = language_codes.Wiktionary.map(language)
-    wiktionary_entry = get_wiktionary_entry(language_code, word)
-    pronunciation_entries = filter_pronunciations(wiktionary_entry)
-    pronunciations = list_pronunciations(pronunciation_entries)
+    if local:
+        language = language.capitalize()
+        client = MongoClient()
+        db = getattr(client, 'pronunciation_master')
+        collection = db.wiktionary_ipa
+        found =  collection.find_one({
+            'language': language,
+            'word': word,
+            })
+        pronunciations = found and found['IPA'] or None
+    else:
+        wiktionary_entry = get_wiktionary_entry(language_code, word)
+        pronunciation_entries = filter_pronunciations(wiktionary_entry)
+        pronunciations = list_pronunciations(pronunciation_entries)
     return pronunciations
 
 
@@ -48,7 +46,6 @@ def get_wiktionary_entry(language, word):
     Returns:
         parsed wiktionary page
     """
-    parser
     parser = WiktionaryParser()
     parser.set_default_language(language)
     try:
@@ -91,7 +88,7 @@ def list_pronunciations(pronunciation_entries):
 if __name__ == '__main__':
     description = 'Get the phonemes from a language'
     args = commandline.LanguageAndWordInput.parse_arguments(description)
-    pronunciations = get_pronunciations(args.language, args.word)
+    pronunciations = get_pronunciations(args.language, args.word, local=True)
     if not pronunciations:
         message = "No pronunciations found for word '{}' in language '{}'"
         raise RuntimeError(message.format(args.word, args.language))

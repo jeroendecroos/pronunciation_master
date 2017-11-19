@@ -124,7 +124,7 @@ class DatabaseDataGetters(DataGetters):
                      super(DatabaseDataGetters, self),
                      function_name,
                      )
-                 value = function(*args) if args is not None else function()
+                 value = function(self._language, *args) if args is not None else function(self._language)
             if not value and fail:
                 error = "couldn't find {} for language {} and args {}"
                 raise RuntimeError(error.format(
@@ -138,7 +138,6 @@ def _get_equal_phonemes(pronunciations):
     """ gets all phonemes that are equal for each pronunciation
         unequal lengths 'abc', 'bc' will be all ignored till better algorithm
     """
-    return set(x for y in pronunciations for x in y)
     example = next(iter(pronunciations))  # set robust
     equal_phonemes = [
         phoneme
@@ -200,6 +199,7 @@ class PronunciationExamples(object):
         assert minimum_examples <= maximum_examples
         self.maximum_examples = maximum_examples
         self.minimum_examples = minimum_examples
+        self.restrictive = True
 
     def add_pronunciations(self, word, pronunciations):
         """ adds for each phoneme in the pronunciations this words
@@ -208,9 +208,11 @@ class PronunciationExamples(object):
         unequal lengths 'abc', 'bc' will be all ignored till better algorithm
         """
         pronunciations_IPA = list(pronunciations)
-        if pronunciations_IPA: #and _all_have_same_length(pronunciations_IPA):
-            phonemes = set(x for y in pronunciations for x in y)
-            #phonemes = _get_equal_phonemes(pronunciations_IPA)
+        if pronunciations_IPA and (not self.restrictive or _all_have_same_length(pronunciations_IPA)):
+            if self.restrictive:
+                phonemes = _get_equal_phonemes(pronunciations_IPA)
+            else:
+                phonemes = set(x for y in pronunciations for x in y)
             for phoneme in phonemes:
                 if len(self._examples[phoneme]) < self.maximum_examples:
                     assert phoneme in self._examples
