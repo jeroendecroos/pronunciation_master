@@ -2,21 +2,15 @@
 """
 import re
 import itertools
-from pymongo import MongoClient
 
 from wiktionaryparser import WiktionaryParser
 
 import language_codes
 import commandline
+import mongodb
 
 
-def default_local_db():
-    client = MongoClient()
-    db = getattr(client, 'pronunciation_master')
-    return db
-
-
-def get_pronunciations(language, word, local=default_local_db()):
+def get_pronunciations(language, word, local=mongodb.default_local_db()):
     """ main function of module,
     gets the pronunciations for a 'word' in a 'language'
     dependency on Wiktionary (get_wiktionary_entry) to get this
@@ -37,7 +31,7 @@ def get_pronunciations(language, word, local=default_local_db()):
     return pronunciations
 
 
-def _get_local_wiktionary_entry(language, word, database='pronunciation_master'):
+def _get_local_wiktionary_entry(language, word, database):
     """Interface to the requestion something from an offline stored wiktionary
     Arguments:
         language = language of which we want the entry

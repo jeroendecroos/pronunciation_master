@@ -33,12 +33,6 @@ class FilterPronunciationsTest(testcase.BaseTestCase):
         self.assertItemsEqual(fun(entry), expected)
 
 
-
-class DefaultLocalDbTest(testcase.BaseTestCase):
-    def test_basic(self):
-        get_pronunciations.default_local_db()
-
-
 class ListPronunciationsTest(testcase.BaseTestCase):
 
     @params(

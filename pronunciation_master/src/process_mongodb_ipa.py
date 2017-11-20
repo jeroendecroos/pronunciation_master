@@ -7,27 +7,36 @@ import re
 from pymongo import MongoClient
 
 
-
-def process_db(database, word=None):
+def _get_mongo_db(database, drop=False):
     client = MongoClient()
     db = getattr(client, database)
-    if not word:
+    if drop:
         db.wiktionary_ipa.drop()
-    query = word and {'word': word} or {}
-    for document in db.wiktionary_raw_subdivided.find(query):
-        if not 'section' in document:
-            import pdb; pdb.set_trace()
-        if document['section'] == 'Pronunciation':
-            ipa = process_ipa(document['content'])
-            if word:
-                print ipa
-                print document
-            db.wiktionary_ipa.insert_one({
-                'language': document['language'],
-                'word': document['word'],
-                'IPA': ipa,
-                })
+    return db
 
+
+def process_db(database, debug_word=None):
+    db = _get_mongo_db(database, drop=not debug_word)
+    query = debug_word and {'word': debug_word} or {}
+    for document in db.wiktionary_raw_subdivided.find(query):
+        entry = _process_document(document, debug_word)
+        if entry:
+            db.wiktionary_ipa.insert_one(entry)
+
+
+def _process_document(document, debug_word=False):
+    if not 'section' in document:
+        raise Exception('"section" not in document {}'.format(document))
+    if document['section'] == 'Pronunciation':
+        ipa = process_ipa(document['content'])
+        if debug_word:
+            print ipa
+            print document
+        return {
+            'language': document['language'],
+            'word': document['word'],
+            'IPA': ipa,
+            }
 
 
 def process_ipa(content):
@@ -38,7 +47,7 @@ def process_ipa(content):
         item_pronunciations = re.split('/?\|?/?', ipa)
         pronunciations.update(item_pronunciations)
     pronunciations.remove(u'')
-    return pronunciations
+    return list(pronunciations)
 
 
 if __name__ == '__main__':
