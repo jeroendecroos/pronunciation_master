@@ -10,32 +10,48 @@ import language_codes
 import commandline
 
 
-def get_pronunciations(language, word, local=False):
+def default_local_db():
+    client = MongoClient()
+    db = getattr(client, 'pronunciation_master')
+    return db
+
+
+def get_pronunciations(language, word, local=default_local_db()):
     """ main function of module,
     gets the pronunciations for a 'word' in a 'language'
     dependency on Wiktionary (get_wiktionary_entry) to get this
     Arguments:
         language = language to get pronunciations for
         word = word to get the pronunciations for
+        local = use this local mongodb
     Returns:
         set of pronunciations set('pron1', 'pron2', ...)
     """
     language_code = language_codes.Wiktionary.map(language)
     if local:
-        language = language.capitalize()
-        client = MongoClient()
-        db = getattr(client, 'pronunciation_master')
-        collection = db.wiktionary_ipa
-        found =  collection.find_one({
-            'language': language,
-            'word': word,
-            })
-        pronunciations = found and found['IPA'] or None
+        pronunciations = _get_local_wiktionary_entry(language, word, local)
     else:
         wiktionary_entry = get_wiktionary_entry(language_code, word)
         pronunciation_entries = filter_pronunciations(wiktionary_entry)
         pronunciations = list_pronunciations(pronunciation_entries)
     return pronunciations
+
+
+def _get_local_wiktionary_entry(language, word, database='pronunciation_master'):
+    """Interface to the requestion something from an offline stored wiktionary
+    Arguments:
+        language = language of which we want the entry
+        word = word  of which we want the entry
+    Returns:
+        parsed pronunciations
+    """
+    language = language.capitalize()
+    collection = database.wiktionary_ipa
+    found =  collection.find_one({
+        'language': language,
+        'word': word,
+        })
+    return found and found['IPA'] or None
 
 
 def get_wiktionary_entry(language, word):

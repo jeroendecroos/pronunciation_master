@@ -209,14 +209,12 @@ class PronunciationExamples(object):
         """
         pronunciations_IPA = list(pronunciations)
         if pronunciations_IPA and (not self.restrictive or _all_have_same_length(pronunciations_IPA)):
-            if self.restrictive:
-                phonemes = _get_equal_phonemes(pronunciations_IPA)
-            else:
-                phonemes = set(x for y in pronunciations for x in y)
+            phonemes = _get_equal_phonemes(pronunciations_IPA)
             for phoneme in phonemes:
                 if len(self._examples[phoneme]) < self.maximum_examples:
                     assert phoneme in self._examples
                     self._examples[phoneme].append(word)
+
 
     def reached_minimum(self):
         """ Check if all phonemes have at least the minimum amount of examples

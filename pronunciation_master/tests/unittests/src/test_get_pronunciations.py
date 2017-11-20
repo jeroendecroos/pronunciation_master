@@ -1,4 +1,5 @@
 import unittest
+from mongomock import MongoClient
 
 import mock
 from nose2.tools import params
@@ -30,6 +31,12 @@ class FilterPronunciationsTest(testcase.BaseTestCase):
     def test_floor(self, name, entry, expected):
         fun = get_pronunciations.filter_pronunciations
         self.assertItemsEqual(fun(entry), expected)
+
+
+
+class DefaultLocalDbTest(testcase.BaseTestCase):
+    def test_basic(self):
+        get_pronunciations.default_local_db()
 
 
 class ListPronunciationsTest(testcase.BaseTestCase):
@@ -76,16 +83,50 @@ class GetPronunciationsTest(testcase.BaseTestCase):
         with self.assertRaises(ValueError):
             self.fun('unknown language', 'ba', local=False)
 
+    def test_raise_bad_language_local(self):
+        with self.assertRaises(ValueError):
+            self.fun('unknown language', 'ba', local=True)
+
     def test_one_pronoun_on_wiktionary(self):
         entry = {'pronunciations': ['IPA: /ba/']}
         self.get_wiktionary_entry.return_value = [entry]
         ret = self.fun('dutch', 'bad', local=False)
         self.assertItemsEqual(ret, ['ba'])
 
+    def test_one_pronoun_local_wiktionary(self):
+        get_pronunciations.MongoClient = MongoClient
+        client = get_pronunciations.MongoClient()
+        db = getattr(client, 'pronunciation_master')
+        collection = db.wiktionary_ipa
+        found =  collection.insert_one({
+            'language': 'Dutch',
+            'word': 'bad',
+            'IPA': ['phoneme'],
+            })
+        self.assertEqual(
+            self.fun('dutch', 'bad', local=db),
+            ['phoneme'])
+
+    def test_local_wiktionary_no_entry(self):
+        get_pronunciations.MongoClient = MongoClient
+        client = get_pronunciations.MongoClient()
+        db = getattr(client, 'pronunciation_master')
+        collection = db.wiktionary_ipa
+        self.assertEqual(
+            self.fun('dutch', 'bad', local=db),
+            None)
+
 
 class GetWiktionaryEntry(testcase.BaseTestCase):
     def test_interface(self):
         get_pronunciations.WiktionaryParser = mock.Mock()
+        get_pronunciations.get_wiktionary_entry('lan', 'word')
+
+    def test_no_action_for_bad_call(self):
+        class FakeParser(mock.Mock):
+            def fetch(self, *args):
+                raise Exception
+        get_pronunciations.WiktionaryParser = FakeParser
         get_pronunciations.get_wiktionary_entry('lan', 'word')
 
 
