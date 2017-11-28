@@ -124,7 +124,7 @@ class DatabaseDataGetters(DataGetters):
                      super(DatabaseDataGetters, self),
                      function_name,
                      )
-                 value = function(self._language, *args) if args is not None else function(self._language)
+                 value = function(*args) if args is not None else function()
             if not value and fail:
                 error = "couldn't find {} for language {} and args {}"
                 raise RuntimeError(error.format(

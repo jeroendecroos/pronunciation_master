@@ -152,7 +152,7 @@ class DatabaseDataGettersTest(testcase.BaseTestCase):
         data_getter = self.data_getter()
         data_getter.fallback = True
         self.assertEqual(
-            data_getter._try_fallback(None, 'pronunciations'),
+            data_getter._try_fallback(None, 'pronunciations', args=['fa']),
             5,
             )
 
@@ -173,7 +173,9 @@ class DatabaseDataGettersTest(testcase.BaseTestCase):
             data_getter._try_fallback(
                 None,
                 'pronunciations',
-                fail=True)
+                fail=True,
+                args=['fa'],
+                )
 
 class PronunciationExamplesTest(testcase.BaseTestCase):
     def setUp(self):

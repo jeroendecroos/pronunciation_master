@@ -98,7 +98,7 @@ def list_pronunciations(pronunciation_entries):
 if __name__ == '__main__':
     description = 'Get the phonemes from a language'
     args = commandline.LanguageAndWordInput.parse_arguments(description)
-    pronunciations = get_pronunciations(args.language, args.word, local=True)
+    pronunciations = get_pronunciations(args.language, args.word)
     if not pronunciations:
         message = "No pronunciations found for word '{}' in language '{}'"
         raise RuntimeError(message.format(args.word, args.language))

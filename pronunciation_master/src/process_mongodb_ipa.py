@@ -25,7 +25,7 @@ def process_db(database, debug_word=None):
 
 
 def _process_document(document, debug_word=False):
-    if not 'section' in document:
+    if 'section' not in document:
         raise Exception('"section" not in document {}'.format(document))
     if document['section'] == 'Pronunciation':
         ipa = process_ipa(document['content'])
@@ -46,7 +46,8 @@ def process_ipa(content):
         ipa = re.sub('lang=[^|]+', '', ipa)
         item_pronunciations = re.split('/?\|?/?', ipa)
         pronunciations.update(item_pronunciations)
-    pronunciations.remove(u'')
+    if '' in pronunciations:
+        pronunciations.remove(u'')
     return list(pronunciations)
 
 

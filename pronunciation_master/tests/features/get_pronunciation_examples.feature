@@ -100,12 +100,13 @@ Feature: Get pronunciation examples for language XXX
         | mik  | 3           | 5706767        |
         Given there is the following in the table "pronunciations":
         | word | original_pronunciation | ipa_pronunciation |
-        | ik   | mik                    | m,i,k               |
+        | ik   | ik                     |  i,k               |
+        | mik  | mik                    | m,i,k               |
         Given I want to get the data from the database "if_possible"
         When I ask for pronunciation examples
         Then I see the following in the dict-list:
             | key | value |
             | i   | ik    |
-            | k   | mik   |
-            | m   | ik    |
+            | m   | mik   |
+            | k   | ik    |
 
