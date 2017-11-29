@@ -52,7 +52,10 @@ class ArgumentParser(argparse.ArgumentParser):
             help='dont list more examples')
 
     def add_which_table(self, data_getter_options={}):
-        subparsers = self.add_subparsers(help='which table to fill', dest='which_table')
+        subparsers = self.add_subparsers(
+            help='which table to fill',
+            dest='which_table'
+            )
         parser = subparsers.add_parser("create_empty")
         for name, arguments in data_getter_options.iteritems():
             parser = subparsers.add_parser(name)
@@ -103,6 +106,7 @@ class LanguageAndWordInput(CommonArguments):
         parser.add_language()
         parser.add_word()
 
+
 class LanguageAndDatabaseInput(CommonArguments):
     @classmethod
     def _add_arguments(_, parser):
@@ -110,9 +114,16 @@ class LanguageAndDatabaseInput(CommonArguments):
         parser.add_db_config(required=False)
         parser.add_use_database()
 
+
 class LanguageAndDatabaseOutput(CommonArguments):
     @classmethod
-    def parse_arguments(cls, description, data_getter_options={}, argv=None, extra_arguments=tuple()):
+    def parse_arguments(
+            cls,
+            description,
+            data_getter_options={},
+            argv=None,
+            extra_arguments=tuple(),
+            ):
         cls.data_getter_options = data_getter_options
         return super(LanguageAndDatabaseOutput, cls).parse_arguments(
             description,

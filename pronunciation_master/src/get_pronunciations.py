@@ -41,7 +41,7 @@ def _get_local_wiktionary_entry(language, word, database):
     """
     language = language.capitalize()
     collection = database.wiktionary_ipa
-    found =  collection.find_one({
+    found = collection.find_one({
         'language': language,
         'word': word,
         })

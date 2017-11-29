@@ -1,9 +1,6 @@
 import argparse
 import xml.sax
-import sys
-import os
 import codecs
-from pymongo import MongoClient
 
 import mongodb
 
@@ -33,13 +30,8 @@ class ABContentHandler(xml.sax.ContentHandler):
         self._word = False
         self._buffer = []
 
-
     def characters(self, content):
         if self._word is True:
-            #if ':' in content or '/' in content or len(content) == 1:
-#            if len(content) == 1:
-#                self._reset()
-#                return
             self._word = content
         elif self._text is True and self._word:
             self._buffer.append(content)
@@ -53,13 +45,14 @@ class ABContentHandler(xml.sax.ContentHandler):
             self._table.insert_one(entry)
 
 
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--wiktionary')
     parser.add_argument('--database', required=True)
     args = parser.parse_args()
-    collection = mongodb.default_local_db(args.database, drop_collection='wiktionary_raw').wiktionary_raw
+    collection = mongodb.default_local_db(
+        args.database,
+        drop_collection='wiktionary_raw'
+        ).wiktionary_raw
     with codecs.open(args.wiktionary, 'rb') as f:
         xml.sax.parse(f, ABContentHandler(collection))

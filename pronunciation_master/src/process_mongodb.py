@@ -1,16 +1,10 @@
 import argparse
-import xml.sax
-import sys
-import os
-import codecs
 import re
-import mongodb
-from pymongo import MongoClient
 
+import mongodb
 
 
 def process_db(db, word=None):
-    to_collection = db.wiktionary_raw_subdivided
     query = word and {'title': word} or {}
     for doc in db.wiktionary_raw.find(query):
         item = parse_doc(doc)
@@ -18,7 +12,9 @@ def process_db(db, word=None):
             db.wiktionary_raw_subdivided.insert_many(
                 item)
     if word:
-        l = db.wiktionary_raw_subdivided.find({'word': word, 'language': 'French'})
+        l = db.wiktionary_raw_subdivided.find({
+            'word': word,
+            })
         print [x for x in l]
 
 
@@ -43,7 +39,6 @@ def parse_doc(document):
 def parse_language(text):
     section_pattern = "(?<=[^=])(===[0-9a-zA-Z- _]+===)(?=[^=])"
     items = []
-    #import pdb; pdb.set_trace()
     raw_items = re.split(section_pattern, ' '+text)[1:]
     for i in range(0, len(raw_items), 2):
         section = raw_items[i]

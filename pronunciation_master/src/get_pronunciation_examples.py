@@ -1,8 +1,6 @@
 """ get_pronunciation_examples gives the most frequent used words
     that have a certain phoneme in its pronunciation
 """
-import functools
-
 import commandline
 import database
 import get_phonemes
@@ -20,6 +18,7 @@ class DataGetters(object):
     """ datastructure to hold different functions to get data
     """
     _phonemes = None
+
     def __init__(self, language):
         self._language = language
 
@@ -43,9 +42,13 @@ class DataGetters(object):
     def _create(self, pronunciations):
         for pronunciation in pronunciations:
             try:
-                yield Pronunciation.from_original(pronunciation, self.phonemes())
+                yield Pronunciation.from_original(
+                    pronunciation,
+                    self.phonemes(),
+                    )
             except ValueError:
                 continue
+
 
 class DatabaseDataGetters(DataGetters):
     """ gets data from database.
@@ -57,13 +60,19 @@ class DatabaseDataGetters(DataGetters):
         super(DatabaseDataGetters, self).__init__(language)
         self.db_engine = database.create_engine(db_config)
         self.fallback = fallback
+        table_names = [
+           'phonemes',
+           'word_frequencies',
+           'pronunciations',
+           ]
         self.tables = {name: database.Table.from_database(name, self.db_engine)
-                       for name in ['phonemes', 'word_frequencies', 'pronunciations']}
+                       for name in table_names}
+
     def phonemes(self):
         if self._phonemes is None:
             self._phonemes = self.tables['phonemes'].get_data(
                                 column='ipa',
-                                specifications={'language' : self._language}
+                                specifications={'language': self._language}
                                 )
         self._phonemes = self._try_fallback(
             self._phonemes,
@@ -75,7 +84,7 @@ class DatabaseDataGetters(DataGetters):
     def words(self):
         _words = self.tables['word_frequencies'].get_data(
                     column='word',
-                    specifications={'language' : self._language},
+                    specifications={'language': self._language},
                     order_by='ranking')
         _words = self._try_fallback(
             _words,
@@ -86,9 +95,9 @@ class DatabaseDataGetters(DataGetters):
 
     def pronunciations(self, word):
         _pronunciations = self.tables['pronunciations'].get_data(
-                    column = 'original_pronunciation',
+                    column='original_pronunciation',
                     specifications={
-                        'language' : self._language,
+                        'language': self._language,
                         'word': word,
                         },
                     )
@@ -102,9 +111,9 @@ class DatabaseDataGetters(DataGetters):
 
     def IPA_pronunciations(self, word):
         raw_pronunciations = self.tables['pronunciations'].get_data(
-                    column = 'ipa_pronunciation',
+                    column='ipa_pronunciation',
                     specifications={
-                        'language' : self._language,
+                        'language': self._language,
                         'word': word,
                         },
                     )
@@ -120,11 +129,11 @@ class DatabaseDataGetters(DataGetters):
     def _try_fallback(self, value, function_name, fail=True, args=None):
         if not value:
             if self.fallback:
-                 function = getattr(
-                     super(DatabaseDataGetters, self),
-                     function_name,
-                     )
-                 value = function(*args) if args is not None else function()
+                function = getattr(
+                    super(DatabaseDataGetters, self),
+                    function_name,
+                    )
+                value = function(*args) if args is not None else function()
             if not value and fail:
                 error = "couldn't find {} for language {} and args {}"
                 raise RuntimeError(error.format(
@@ -207,14 +216,17 @@ class PronunciationExamples(object):
                 ('ab', 'ac'-> only phoneme 'a')
         unequal lengths 'abc', 'bc' will be all ignored till better algorithm
         """
-        pronunciations_IPA = list(pronunciations)
-        if pronunciations_IPA and (not self.restrictive or _all_have_same_length(pronunciations_IPA)):
-            phonemes = _get_equal_phonemes(pronunciations_IPA)
-            for phoneme in phonemes:
-                if len(self._examples[phoneme]) < self.maximum_examples:
-                    assert phoneme in self._examples
-                    self._examples[phoneme].append(word)
+        pronunciations = list(pronunciations)
+        if pronunciations:
+            if not self.restrictive or _all_have_same_length(pronunciations):
+                phonemes = _get_equal_phonemes(pronunciations)
+                self._add_phonemes(phonemes, word)
 
+    def _add_phonemes(self, phonemes, word):
+        for phoneme in phonemes:
+            if len(self._examples[phoneme]) < self.maximum_examples:
+                assert phoneme in self._examples
+                self._examples[phoneme].append(word)
 
     def reached_minimum(self):
         """ Check if all phonemes have at least the minimum amount of examples
@@ -240,8 +252,13 @@ class PronunciationExamples(object):
         return self._examples.values()
 
 
-
-def get_pronunciation_examples(language, use_database="not", db_config=None, max_words=10, list_return_value=False, **kwargs):
+def get_pronunciation_examples(
+        language,
+        use_database="not",
+        db_config=None,
+        max_words=10,
+        list_return_value=False,
+        **kwargs):
     """ get the pronunciation examples for a certain language
     Arguments:
         Language = target language

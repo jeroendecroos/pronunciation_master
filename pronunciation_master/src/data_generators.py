@@ -2,21 +2,27 @@ import itertools
 
 import get_frequent_words
 import get_phonemes
-import get_pronunciations
 import get_pronunciation_examples
 
 
 class RowGenerator(object):
-    def __init__(self, module, function, column_names, list_modifier=None, buffer_size=None, **kwargs):
+    def __init__(
+            self,
+            module,
+            function,
+            column_names,
+            list_modifier=None,
+            buffer_size=None,
+            **kwargs):
         self.data_provider = getattr(module, function)
-        self.column_names=column_names
+        self.column_names = column_names
         self.list_modifier = list_modifier
         self.kwargs = kwargs
-        self.buffer_size=buffer_size
+        self.buffer_size = buffer_size
 
     def add_options(self, args):
         for option in self.get_possible_options():
-            if not option in self.kwargs and hasattr(args, option):
+            if option not in self.kwargs and hasattr(args, option):
                 self.kwargs[option] = getattr(args, option)
 
     def get_possible_options(self):
@@ -28,8 +34,9 @@ class RowGenerator(object):
         """Will create a generator of the data returned by function in a module
         the generator will return for each value in the returned data,
             a dictionary with keys, column_names with and added column language
-        the len(column_names) < number of 'columns' returend bz the function
-        the function can return any iterable of single-values, lists, tuples, dicts
+        the len(column_names) < number of 'columns' returned by the function
+        function can return any iterable of:
+                single-values, lists, tuples, dicts
         """
         def run(language):
             for item in self.data_provider(language, **self.kwargs):
@@ -43,7 +50,8 @@ class RowGenerator(object):
                     assert len(self.column_names) == 1
                     row = {self.column_names[0].lower(): item}
                 else:
-                    assert all(hasattr(item, name) for name in self.column_names)
+                    assert all(hasattr(item, name)
+                               for name in self.column_names)
                     row = {name.lower(): getattr(item, name)
                            for name in self.column_names}
                 row['language'] = language
@@ -108,5 +116,3 @@ def get_kwargs(func):
         return dict(zip(kwargs, func.func_defaults))
     else:
         return {}
-
-

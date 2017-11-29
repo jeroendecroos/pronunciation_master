@@ -1,22 +1,14 @@
 import argparse
-import xml.sax
-import sys
-import os
-import codecs
 import re
-from pymongo import MongoClient
 
-
-def _get_mongo_db(database, drop=False):
-    client = MongoClient()
-    db = getattr(client, database)
-    if drop:
-        db.wiktionary_ipa.drop()
-    return db
+import mongodb
 
 
 def process_db(database, debug_word=None):
-    db = _get_mongo_db(database, drop=not debug_word)
+    db = mongodb.default_local_db(
+        database,
+        drop_collection='wiktionary_ipa' if not debug_word else None,
+        )
     query = debug_word and {'word': debug_word} or {}
     for document in db.wiktionary_raw_subdivided.find(query):
         entry = _process_document(document, debug_word)
