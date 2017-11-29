@@ -1,4 +1,3 @@
-import unittest
 from mongomock import MongoClient
 
 import mock
@@ -92,7 +91,7 @@ class GetPronunciationsTest(testcase.BaseTestCase):
         client = get_pronunciations.MongoClient()
         db = getattr(client, 'pronunciation_master')
         collection = db.wiktionary_ipa
-        found =  collection.insert_one({
+        collection.insert_one({
             'language': 'Dutch',
             'word': 'bad',
             'IPA': ['phoneme'],
@@ -105,7 +104,6 @@ class GetPronunciationsTest(testcase.BaseTestCase):
         get_pronunciations.MongoClient = MongoClient
         client = get_pronunciations.MongoClient()
         db = getattr(client, 'pronunciation_master')
-        collection = db.wiktionary_ipa
         self.assertEqual(
             self.fun('dutch', 'bad', local=db),
             None)
@@ -122,7 +120,3 @@ class GetWiktionaryEntry(testcase.BaseTestCase):
                 raise Exception
         get_pronunciations.WiktionaryParser = FakeParser
         get_pronunciations.get_wiktionary_entry('lan', 'word')
-
-
-if __name__ == '__main__':
-    unittest.main()

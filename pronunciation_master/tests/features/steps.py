@@ -59,6 +59,7 @@ def given_i_want_to_get_minimum_X_examples(_, minimum_examples):
 def given_i_want_to_get_maximum_X_examples(_, maximum_examples):
     world.maximum_examples = maximum_examples
 
+
 @step(u'Given there is the following in the table "([^"]*)":')
 def given_there_is_the_following_in_the_table_group1(step, table_name):
     engine = _database_engine(DB_CONFIG_FILEPATH)
@@ -262,7 +263,7 @@ def when_i_ask_to_store_its_data_with_parameters(_, which_table, parameters):
         positional_arguments=[
             'which_table',
             ],
-    sub_arguments=sub_arguments,
+        sub_arguments=sub_arguments,
         )
 
 
@@ -348,7 +349,11 @@ def check_dict(step):
     tests = _transform_lettuce_hashes_into_dict(step.hashes)
     for test_key, test_values in tests.iteritems():
         for value in test_values:
-            debug_text = (value, test_key, world.stdout.get(test_key, world.stdout))
+            debug_text = (
+                value,
+                test_key,
+                world.stdout.get(test_key, world.stdout),
+                )
             assert test_key in world.stdout, debug_text
             assert value in world.stdout[test_key], debug_text
 
@@ -389,13 +394,19 @@ def check_warning_message(_, in_log, warning_message):
 ############################
 
 
-def _external_program_runner(program, arguments=tuple(), parser=None, positional_arguments=tuple(), sub_arguments=tuple()):
+def _external_program_runner(
+        program,
+        arguments=tuple(),
+        parser=None,
+        positional_arguments=tuple(),
+        sub_arguments=tuple(),
+        ):
     arguments = {'--{}'.format(a): getattr(world, a)
                  for a in arguments if hasattr(world, a)}
     arguments = list(itertools.chain.from_iterable(arguments.items()))
     arguments += [getattr(world, a) for a in positional_arguments]
     sub_arguments = {'--{}'.format(a): getattr(world, a)
-                 for a in sub_arguments if hasattr(world, a)}
+                     for a in sub_arguments if hasattr(world, a)}
     arguments += list(itertools.chain.from_iterable(sub_arguments.items()))
     path = os.path.join(testlib.project_vars.SRC_DIR, program)
     command = [path] + arguments

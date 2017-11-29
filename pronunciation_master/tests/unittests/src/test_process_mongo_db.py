@@ -1,8 +1,4 @@
-import unittest
-
-import mock
 from mongomock import MongoClient
-from nose2.tools import params
 
 from pronunciation_master.tests.testlib import testcase
 from pronunciation_master.src import process_mongodb

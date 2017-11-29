@@ -1,8 +1,8 @@
 from nose2.tools import params
 
-
-from pronunciation_master.tests.testlib import testcase, project_vars
+from pronunciation_master.tests.testlib import testcase
 from pronunciation_master.src import data_generators
+
 
 class GetKwargsTest(testcase.BaseTestCase):
     def test_no_args(self):
@@ -34,7 +34,7 @@ class GetKwargsTest(testcase.BaseTestCase):
             pass
         self.assertEqual(
             data_generators.get_kwargs(func),
-            {'a':1, 'b':2},
+            {'a': 1, 'b': 2},
             )
 
     def test_args_and_kwargs(self):
@@ -42,9 +42,8 @@ class GetKwargsTest(testcase.BaseTestCase):
             pass
         self.assertEqual(
             data_generators.get_kwargs(func),
-            {'b':2},
+            {'b': 2},
             )
-
 
 
 class RowGeneratorTest(testcase.BaseTestCase):
@@ -64,7 +63,7 @@ class RowGeneratorTest(testcase.BaseTestCase):
              [{'language': 'bla', 'col1': x, 'col2': x**2} for x in range(10)]
              ),
             ('namespace',
-              (lambda x: type('waw', (), {'col1': x, 'col2': x**2})),
+             (lambda x: type('waw', (), {'col1': x, 'col2': x**2})),
              ['col1', 'col2'],
              [{'language': 'bla', 'col1': x, 'col2': x**2} for x in range(10)]
              ),
@@ -115,7 +114,7 @@ class RowGeneratorTest(testcase.BaseTestCase):
         gen = data_generators.RowGenerator(Module, "function", "")
         self.assertEqual(
             gen.get_possible_options(),
-            {'y':4},
+            {'y': 4},
             )
 
     def test_add_options(self):
@@ -127,7 +126,7 @@ class RowGeneratorTest(testcase.BaseTestCase):
         gen.add_options(type('n', (), {'y': 4}))
         self.assertEqual(
             gen.kwargs,
-            {'y':4},
+            {'y': 4},
             )
 
 
@@ -138,10 +137,10 @@ class RowGeneratorsTest(testcase.BaseTestCase):
             def function(language='', y=4):
                 pass
         gen = data_generators.RowGenerator(Module, "function", "")
+
         class RowGenerators(data_generators.RowGenerators):
             row_generators = {"us": gen}
         self.assertEqual(
             RowGenerators.get_all_options(),
-            {'us': {'y':4}},
+            {'us': {'y': 4}},
             )
-

@@ -1,6 +1,5 @@
 import json
 import mock
-from nose2.tools import params
 import os
 import testing.postgresql
 import tempfile
@@ -11,6 +10,7 @@ from pronunciation_master.src import store_data
 from pronunciation_master.src import database
 
 PASSWORD = 'dog'
+
 
 def handler(postgresql):
     conn = psycopg2.connect(**postgresql.dsn(password="None"))
@@ -35,7 +35,6 @@ def _project_config():
     with open(config_file) as json_data_file:
         config = json.load(json_data_file)
     return config
-
 
 
 class DataBaseTestCase(testcase.BaseTestCase):

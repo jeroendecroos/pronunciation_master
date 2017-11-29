@@ -1,9 +1,6 @@
 # testlib.testcase.py
 import json
 import os
-import psycopg2
-import sqlalchemy
-import tempfile
 import unittest
 
 import project_vars
@@ -46,5 +43,3 @@ def _project_config():
     with open(config_file) as json_data_file:
         config = json.load(json_data_file)
     return config
-
-

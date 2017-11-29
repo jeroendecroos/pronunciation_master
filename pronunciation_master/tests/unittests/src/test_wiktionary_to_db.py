@@ -1,8 +1,4 @@
-import unittest
-
-import mock
 from mongomock import MongoClient
-from nose2.tools import params
 import xml
 import StringIO
 
@@ -19,6 +15,7 @@ stupid_xml = StringIO.StringIO("""<?xml version="1.0"?>
      </address-book>
 """)
 
+
 class ProcessDbTest(testcase.BaseTestCase):
     def setUp(self):
         self.client = MongoClient()
@@ -26,7 +23,7 @@ class ProcessDbTest(testcase.BaseTestCase):
         self.collection = self.db.wiktionary_raw
 
     def test_init(self):
-        handler = wiktionary_to_db.ABContentHandler(self.collection)
+        wiktionary_to_db.ABContentHandler(self.collection)
 
     def test_parse_nothing(self):
         stupid_xml = StringIO.StringIO("""<?xml version="1.0"?>
@@ -56,4 +53,3 @@ class ProcessDbTest(testcase.BaseTestCase):
         ret = self.collection.find_one()
         self.assertEqual(ret['title'], 'biba')
         self.assertEqual(ret['text'].strip(), 'lila')
-

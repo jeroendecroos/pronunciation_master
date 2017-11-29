@@ -29,7 +29,12 @@ class ArgumentParserTest(testcase.BaseTestCase):
     @params(
         ('which_table', 'create_empty', 'create_empty'),
         )
-    def test_add_positional_parameter(self, parameter_name, input_value, return_value):
+    def test_add_positional_parameter(
+            self,
+            parameter_name,
+            input_value,
+            return_value
+            ):
         parser = commandline.ArgumentParser()
         getattr(parser, "add_"+parameter_name)()
         args = parser.parse_args([input_value])
@@ -38,7 +43,12 @@ class ArgumentParserTest(testcase.BaseTestCase):
     @params(
         ('which_table', 'command', 'command'),
         )
-    def test_add_positional_parameter_with_options(self, parameter_name, input_value, return_value):
+    def test_add_positional_parameter_with_options(
+            self,
+            parameter_name,
+            input_value,
+            return_value
+            ):
         parser = commandline.ArgumentParser()
         getattr(parser, "add_"+parameter_name)({'command': {'param': 5}})
         args = parser.parse_args([input_value, '--param', '5'])
@@ -67,15 +77,15 @@ class XInputTest(testcase.BaseTestCase):
     @params(
         (commandline.LanguageInput,
          ['--language', 'test']
-        ),
+         ),
         (commandline.LanguageAndWordInput,
          ['--language', 'test',
           '--word', 'wtest']
-        ),
+         ),
         (commandline.LanguageAndDatabaseInput,
          ['--language', 'test',
           '--db_config', 'some']
-        ),
+         ),
         )
     def test_arguments(self, parser, test_arguments):
         args = parser.parse_arguments('h', test_arguments)
@@ -91,12 +101,13 @@ class XInputTest(testcase.BaseTestCase):
           '--db_config', 'dtest',
           'create_empty']
         args = parser.parse_arguments('h', argv=test_arguments)
-        expected_values =  {
+        expected_values = {
           'language': 'test',
           'db_config': 'dtest',
           'which_table': 'create_empty'}
         for key, value in expected_values.iteritems():
             self.assertEqual(getattr(args, key), value)
+
 
 def run_output_command(fun, items):
     out = StringIO()
