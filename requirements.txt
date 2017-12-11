@@ -60,3 +60,5 @@ sqlalchemy
 testing.postgresql
 psycopg2
 sqlalchemy_utils
+pymongo==3.5.1
+mongomock==3.8.0
