@@ -23,44 +23,26 @@ class FilterPronunciationsTest(testcase.BaseTestCase):
              u'{{IPA|/\u0259t/|/\u0266\u0259t/|lang=nl}}\n*'
              u'{{audio|Nl-het (Belgium).ogg|audio (Belgium)|lang=nl}}\n*'
              u'{{a|NL}} {{IPA|lang=nl|/\u0259t/}} {{qualifier|usually}},'
-             u'{{IPA|lang=nl|/\u0266\u025bt/}} {{qualifier|when stressed}}\n*',
+             u'{{IPA|lang=nl|/\u0266\u025bt/}} {{qualifier|when stressed}}\n*'
              u'{{audio|Nl-het.ogg|audio (Netherlands)|lang=nl}}\n\n'
              ),
             [u'\u0259t', u'\u0266\u0259t', u'\u0266\u025bt']),
 
         )
     def test_process_ipa(self, _, pronunciation_section, expected):
+        assert isinstance(pronunciation_section, basestring)
         result = process_mongodb_ipa.process_ipa(pronunciation_section)
         self.assertItemsEqual(result, set(expected))
 
 
 @mock.patch('pronunciation_master.src.process_mongodb_ipa._process_document')
-class MongoDbTest(testcase.BaseTestCase):
+class ProcessDbTest(testcase.BaseTestCase):
     def setUp(self):
         process_mongodb_ipa.MongoClient = MongoClient
         self.client = process_mongodb_ipa.MongoClient()
         self.db = getattr(self.client, 'pronunciation_test')
-        self.collection = self.db.wiktionary_ipa
 
-    def test_not_items(self, _process):
-        self.collection.insert_one({'IPA': 'something'})
-        process_mongodb_ipa._get_mongo_db('test')
-        self.assertTrue(self.collection.find_one())
-
-    def test_debug(self, _process):
-        self.collection.insert_one({'IPA': 'something'})
-        process_mongodb_ipa._get_mongo_db('pronunciation_test', drop=True)
-
-
-@mock.patch('pronunciation_master.src.process_mongodb_ipa._get_mongo_db')
-@mock.patch('pronunciation_master.src.process_mongodb_ipa._process_document')
-class ProcessDbTest(testcase.BaseTestCase):
-    def setUp(self):
-        self.client = MongoClient()
-        self.db = getattr(self.client, 'pronunciation_test')
-
-    def test_no_entries(self, process, mongodb):
-        mongodb.return_value = self.db
+    def test_no_entries(self, process):
         process.return_value = {'test': 1}
         self.wiktionary = self.db.wiktionary_ipa
         process_mongodb_ipa.process_db(self.db)
@@ -69,11 +51,10 @@ class ProcessDbTest(testcase.BaseTestCase):
             None,
             )
 
-    def test_entries(self, process, mongodb):
+    def test_entries(self, process):
         self.db.wiktionary_raw_subdivided.insert_one({
             'section': 'Pronunciation',
             })
-        mongodb.return_value = self.db
         process.return_value = {'test': 1}
         self.wiktionary = self.db.wiktionary_ipa
         process_mongodb_ipa.process_db(self.db)

@@ -4,11 +4,7 @@ import re
 import mongodb
 
 
-def process_db(database, debug_word=None):
-    db = mongodb.default_local_db(
-        database,
-        drop_collection='wiktionary_ipa' if not debug_word else None,
-        )
+def process_db(db, debug_word=None):
     query = debug_word and {'word': debug_word} or {}
     for document in db.wiktionary_raw_subdivided.find(query):
         entry = _process_document(document, debug_word)
@@ -48,4 +44,8 @@ if __name__ == '__main__':
     parser.add_argument('--database', required=True)
     parser.add_argument('--word', required=False)
     args = parser.parse_args()
-    process_db(args.database, args.word)
+    db = mongodb.default_local_db(
+        args.database,
+        drop_collection='wiktionary_ipa' if not args.word else None,
+        )
+    process_db(db, args.word)

@@ -31,6 +31,7 @@ Postgresql = testing.postgresql.PostgresqlFactory(
 def tearDownModule():
     Postgresql.clear_cache()
 
+
 def _project_config():
     config_file = os.path.join(project_vars.ASSETS_DIR, 'db_config.test.json')
     with open(config_file) as json_data_file:
@@ -97,7 +98,7 @@ class TableTest(DataBaseTestCase):
         config_file = self._create_test_config(database=None)
         db = database.create_engine(config_file)
         with self.assertRaises(RuntimeError):
-            table = database.Table.from_config("hello", {}, db)
+            database.Table.from_config("hello", {}, db)
 
     def test_add_data(self):
         def iterator():
@@ -143,10 +144,10 @@ class TableTest(DataBaseTestCase):
 
     def test_add_data_no_fail_contains_unique(self):
         def iterator():
-            yield {'col1': 0, 'col2': 1, 'col3': 1,}
-            yield {'col1': 1, 'col2': 1, 'col3': 2,}
-            yield {'col1': 0, 'col2': 1, 'col3': 3,}
-            yield {'col1': 2, 'col2': 1, 'col3': 4,}
+            yield {'col1': 0, 'col2': 1, 'col3': 1}
+            yield {'col1': 1, 'col2': 1, 'col3': 2}
+            yield {'col1': 0, 'col2': 1, 'col3': 3}
+            yield {'col1': 2, 'col2': 1, 'col3': 4}
         structure = {
             'col1': {'type': 'Integer'},
             'col2': {'type': 'Integer'},
@@ -157,7 +158,9 @@ class TableTest(DataBaseTestCase):
         table = database.Table.from_config(
             "hello",
             {'Columns': structure,
-             'UniqueConstraint': {'name':'something', 'Columns': ['col1', 'col2']},
+             'UniqueConstraint': {
+                 'name': 'something', 'Columns': ['col1', 'col2']
+                 },
              },
             db)
         table.create(db)
@@ -185,6 +188,7 @@ class TableTest(DataBaseTestCase):
              },
             db)
         table.create(db)
+
         class inserter(object):
             def execute(self, *args, **kwargs):
                 raise sqlalchemy.exc.IntegrityError("", {}, Exception)
@@ -222,12 +226,10 @@ class TableGetDataTest(DataBaseTestCase):
         table = database.Table.from_config("hello", {'Columns': structure}, db)
         table.create(db)
         self.init_data = [{'number': i,
-                      'name': 'oneven' if i%2 else 'even',
-                      }
-                     for i in range(10)]
+                          'name': 'oneven' if i % 2 else 'even'}
+                          for i in range(10)]
         table.add_data(self.init_data)
         return table
-
 
     def test_get_all(self):
         table = self.create_table()
@@ -238,8 +240,8 @@ class TableGetDataTest(DataBaseTestCase):
             )
 
     @params(
-            ("one", {'name':'even'}),
-            ("two", {'name':'even', 'number': 3}),
+            ("one", {'name': 'even'}),
+            ("two", {'name': 'even', 'number': 3}),
             )
     def test_get_with_constraint(self, _, constraints):
         table = self.create_table()
@@ -263,12 +265,13 @@ class TableGetDataTest(DataBaseTestCase):
     def test_get_with_ordering(self):
         table = self.create_table()
         results = table.get_data(order_by='name')
-        expected = [d for d in self.init_data if d['name']=='even']
-        expected += [d for d in self.init_data if d['name']=='oneven']
+        expected = [d for d in self.init_data if d['name'] == 'even']
+        expected += [d for d in self.init_data if d['name'] == 'oneven']
         self.assertItemsEqual(
             [dict(x) for x in results],
             expected
             )
+
 
 class DatabaseTest(DataBaseTestCase):
     def test_init(self):
@@ -276,10 +279,11 @@ class DatabaseTest(DataBaseTestCase):
         database.create_engine(config_file)
 
     @params(('no_tables', {}),
-            ('one_table', {'blabla': {'Columns': {'id': {'type': 'Integer'}}}}),
+            ('one_table', {
+                'blabla': {'Columns': {'id': {'type': 'Integer'}}}}),
             ('two_tables', {
-                'first': {'Columns':{'id': {'type': 'Integer'}}},
-                'second': {'Columns':{'id': {'type': 'Integer'}}}
+                'first': {'Columns': {'id': {'type': 'Integer'}}},
+                'second': {'Columns': {'id': {'type': 'Integer'}}}
                  }),
             )
     def test_init_database(self, _, structure):
@@ -290,10 +294,11 @@ class DatabaseTest(DataBaseTestCase):
         database.init_database(db, db_structure_file.name)
 
     @params(('no_tables', {}),
-            ('one_table', {'blabla': {'Columns': {'id': {'type': 'Integer'}}}}),
+            ('one_table', {
+                'blabla': {'Columns': {'id': {'type': 'Integer'}}}}),
             ('two_tables', {
-                'first': {'Columns':{'id': {'type': 'Integer'}}},
-                'second': {'Columns':{'id': {'type': 'Integer'}}}
+                'first': {'Columns': {'id': {'type': 'Integer'}}},
+                'second': {'Columns': {'id': {'type': 'Integer'}}}
                  }),
             )
     def test_create_empty_tables(self, _, structure):
