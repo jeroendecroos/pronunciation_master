@@ -7,6 +7,7 @@ import os
 
 from pronunciation_master.tests.testlib import testcase, project_vars
 from pronunciation_master.src import get_pronunciation_examples
+from pronunciation_master.src import database
 
 available_phonemes = ['a', 'b', 'c']
 PASSWORD = 'dog'
@@ -98,10 +99,12 @@ class DatabaseDataGettersTest(testcase.BaseTestCase):
             _project_config())
 
 
+@mock.patch('pronunciation_master.src.database.Table.from_database')
 @mock.patch('pronunciation_master.src.database.Table.get_data')
 class DatabaseDataGettersTestGetData(DatabaseDataGettersTest):
 
-    def test_phonemes(self, mock_phonemes):
+    def test_phonemes(self, mock_phonemes, mock_from_database):
+        mock_from_database.return_value = database.Table
         mock_phonemes.return_value = ['a']
         data_getter = self.data_getter()
         self.assertItemsEqual(
@@ -109,7 +112,8 @@ class DatabaseDataGettersTestGetData(DatabaseDataGettersTest):
             ['a']
             )
 
-    def test_phonemes_called_twice(self, mock_phonemes):
+    def test_phonemes_called_twice(self, mock_phonemes, mock_from_database):
+        mock_from_database.return_value = database.Table
         mock_phonemes.return_value = ['a']
         data_getter = self.data_getter()
         data_getter.phonemes(),
@@ -119,7 +123,8 @@ class DatabaseDataGettersTestGetData(DatabaseDataGettersTest):
             )
         self.assertEqual(mock_phonemes.call_count, 1)
 
-    def test_words(self, mock_frequency):
+    def test_words(self, mock_frequency, mock_from_database):
+        mock_from_database.return_value = database.Table
         mock_frequency.return_value = ['a']
         data_getter = self.data_getter()
         self.assertItemsEqual(
@@ -127,7 +132,8 @@ class DatabaseDataGettersTestGetData(DatabaseDataGettersTest):
             ['a']
             )
 
-    def test_pronunciations(self, mock_pronunciations):
+    def test_pronunciations(self, mock_pronunciations, mock_from_database):
+        mock_from_database.return_value = database.Table
         mock_pronunciations.return_value = [['a']]
         data_getter = self.data_getter()
         self.assertItemsEqual(
@@ -135,7 +141,8 @@ class DatabaseDataGettersTestGetData(DatabaseDataGettersTest):
             [['a']]
             )
 
-    def test_IPA_pronunciations(self, mock_pronunciations):
+    def test_IPA_pronunciations(self, mock_pronunciations, mock_from_database):
+        mock_from_database.return_value = database.Table
         mock_pronunciations.return_value = ['a,b']
         data_getter = self.data_getter()
         self.assertItemsEqual(
@@ -144,9 +151,11 @@ class DatabaseDataGettersTestGetData(DatabaseDataGettersTest):
             )
 
 
+@mock.patch('pronunciation_master.src.database.Table.from_database')
 @mock.patch('pronunciation_master.src.get_pronunciations.get_pronunciations')
 class DatabaseDataGettersTestPronunciations(DatabaseDataGettersTest):
-    def test_fallback(self, mock_pronunciations):
+    def test_fallback(self, mock_pronunciations, mock_from_database):
+        mock_from_database.return_value = database.Table
         mock_pronunciations.return_value = 5
         data_getter = self.data_getter()
         data_getter.fallback = True
@@ -155,7 +164,8 @@ class DatabaseDataGettersTestPronunciations(DatabaseDataGettersTest):
             5,
             )
 
-    def test_fallback_no_action(self, _):
+    def test_fallback_no_action(self, _, mock_from_database):
+        mock_from_database.return_value = database.Table
         data_getter = self.data_getter()
         data_getter.fallback = True
         self.assertEqual(
@@ -163,7 +173,8 @@ class DatabaseDataGettersTestPronunciations(DatabaseDataGettersTest):
             5,
             )
 
-    def test_fallback_fail(self, mock_pronunciations):
+    def test_fallback_fail(self, mock_pronunciations, mock_from_database):
+        mock_from_database.return_value = database.Table
         mock_pronunciations.return_value = None
         data_getter = self.data_getter()
         data_getter.fallback = True
