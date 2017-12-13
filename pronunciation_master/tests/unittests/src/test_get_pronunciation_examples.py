@@ -457,13 +457,13 @@ def create_data_getter_fake(phonemes=None, pronunciations=None, words=None):
         def phonemes(self):
             return self._phonemes
 
-        def pronunciations(self, word):
+        def pronunciations(self, word, *args, **kwargs):
             return self._pronunciations
 
         def words(self):
             return self._words
 
-        def IPA_pronunciations(self, word):
+        def IPA_pronunciations(self, word, *args, **kwargs):
             IPA = getattr(
                 self,
                 '_IPA_pronunciations',

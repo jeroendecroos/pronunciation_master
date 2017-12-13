@@ -5,6 +5,10 @@ Feature: Get frequency list for language XXX
     Scenario: specific language
         Given I have the language "Dutch"
         Given I have the word "nu"
+	Given I have an empty mongodb
+	Given I have a mongodb with per language and per word
+	| key | value|
+	| nu  | ny |
         When I ask for its pronunciations
         Then I see the following in the list:
         """
@@ -14,6 +18,10 @@ Feature: Get frequency list for language XXX
     Scenario: multiple pronunciations
         Given I have the language "Dutch"
         Given I have the word "het"
+	Given I have an empty mongodb
+	Given I have a mongodb with per language and per word
+	| key | value|
+	| het | ət,ɦɛt |
         When I ask for its pronunciations
         Then I see the following in the list:
         """

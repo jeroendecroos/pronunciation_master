@@ -30,11 +30,15 @@ class DataGetters(object):
     def words(self):
         return get_frequent_words.get_frequency_list(self._language)
 
-    def pronunciations(self, word):
-        return get_pronunciations.get_pronunciations(self._language, word)
+    def pronunciations(self, word, local=None):
+        return get_pronunciations.get_pronunciations(
+            self._language,
+            word,
+            local,
+            )
 
-    def IPA_pronunciations(self, word):
-        pronunciations = self.pronunciations(word)
+    def IPA_pronunciations(self, word, local=None):
+        pronunciations = self.pronunciations(word, local)
         if not pronunciations:
             return []
         return list(self._create(pronunciations))
@@ -93,7 +97,7 @@ class DatabaseDataGetters(DataGetters):
             )
         return _words
 
-    def pronunciations(self, word):
+    def pronunciations(self, word, local=None):
         _pronunciations = self.tables['pronunciations'].get_data(
                     column='original_pronunciation',
                     specifications={
@@ -105,11 +109,11 @@ class DatabaseDataGetters(DataGetters):
             _pronunciations,
             'pronunciations',
             fail=False,
-            args=[word],
+            args=[word, local],
             )
         return _pronunciations
 
-    def IPA_pronunciations(self, word):
+    def IPA_pronunciations(self, word, local=None):
         raw_pronunciations = self.tables['pronunciations'].get_data(
                     column='ipa_pronunciation',
                     specifications={
@@ -122,7 +126,7 @@ class DatabaseDataGetters(DataGetters):
             _ipa_pronunciations,
             'IPA_pronunciations',
             fail=False,
-            args=[word],
+            args=[word, local],
             )
         return _ipa_pronunciations
 
@@ -258,6 +262,7 @@ def get_pronunciation_examples(
         db_config=None,
         max_words=10,
         list_return_value=False,
+        local=None,
         **kwargs):
     """ get the pronunciation examples for a certain language
     Arguments:
@@ -272,7 +277,7 @@ def get_pronunciation_examples(
         data_getters = DataGetters(language)
     examples = PronunciationExamples(data_getters.phonemes(), **kwargs)
     for word in data_getters.words()[:max_words]:
-        pronunciations = list(data_getters.IPA_pronunciations(word))
+        pronunciations = list(data_getters.IPA_pronunciations(word, local))
         if pronunciations:
             examples.add_pronunciations(word, pronunciations)
         if examples.reached_minimum():
@@ -282,13 +287,18 @@ def get_pronunciation_examples(
     return examples
 
 
-def get_processed_ipas(language, data_getters_class=DataGetters, max_words=15):
+def get_processed_ipas(
+        language,
+        data_getters_class=DataGetters,
+        max_words=15,
+        local='pronunciation_master',
+        ):
     language_codes.Phoibe.check_valid_language(language)
     data_getters = data_getters_class(language)
     for i, word in enumerate(data_getters.words()):
         if max_words == i:
             break
-        pronunciations = list(data_getters.IPA_pronunciations(word))
+        pronunciations = list(data_getters.IPA_pronunciations(word, local))
         for pronunciation in pronunciations:
             pronunciation.word = word
             yield pronunciation

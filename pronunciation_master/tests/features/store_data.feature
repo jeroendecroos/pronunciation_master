@@ -59,6 +59,11 @@ Feature: Store the different data into a database
     Scenario: Store pronunciations
         Given I have the language "dutch"
         Given there is not the database 'pronunciation_master_test'
+	Given I have an empty mongodb
+	Given I have a mongodb with per language and per word
+	| key       | value    |
+        | niet      | nit      |
+        | het       | ɦɛt,ət   |
         When I ask to create an empty database "pronunciation_master_test"
         When I ask to store the "pronunciations"
         Then I find the following in the table "pronunciations":
@@ -71,6 +76,11 @@ Feature: Store the different data into a database
     Scenario: Store with specifications of datagetter
         Given I have the language "dutch"
         Given there is not the database 'pronunciation_master_test'
+	Given I have an empty mongodb
+	Given I have a mongodb with per language and per word
+	| key       | value    |
+        | niet      | nit      |
+        | het       | ɦɛt,ət   |
         When I ask to create an empty database "pronunciation_master_test"
         When I ask to store the "pronunciations" with "max_words=5"
         Then I find the following in the table "pronunciations":

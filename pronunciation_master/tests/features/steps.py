@@ -95,6 +95,21 @@ def given_i_have_a_mongodb_with_raw_input_per_language(step):
     collection.insert_one(document)
 
 
+@step(u'Given I have a mongodb with per language and per word')
+def given_i_have_a_mongodb_with_per_language_and_per_word(step):
+    client = MongoClient()
+    db = client.pronunciation_master_test
+    collection = db.wiktionary_ipa
+    world.local = 'pronunciation_master_test'
+    for row in step.hashes:
+        document = {
+            'language': world.language.capitalize(),
+            'word': row['key'],
+            'IPA': row['value'].split(',')
+            }
+        collection.insert_one(document)
+
+
 @step(u'When I ask to process into language and category')
 def when_i_ask_to_process_into_language_and_category(step):
     world.database = 'pronunciation_master_test'
@@ -157,6 +172,7 @@ def i_have_an_empty_mongodb(step):
     db = client.pronunciation_master_test
     db.wiktionary_raw.drop()
     db.wiktionary_raw_subdivided.drop()
+    db.wiktionary_ipa.drop()
 
 
 @step(u'When I ask to find in the mongodb')
@@ -214,7 +230,7 @@ def ask_for_pronunciation_examples(_):
 def ask_for_its_pronunciations(_):
     _external_program_runner(
         'get_pronunciations.py',
-        ['language', 'word'],
+        ['language', 'word', 'local'],
         )
 
 
@@ -240,6 +256,7 @@ def when_i_ask_to_store_its_data(_, which_table):
         arguments=[
             'db_config',
             'language',
+            'local',
             ],
         positional_arguments=[
             'which_table',
@@ -259,6 +276,7 @@ def when_i_ask_to_store_its_data_with_parameters(_, which_table, parameters):
         arguments=[
             'db_config',
             'language',
+            'local',
             ],
         positional_arguments=[
             'which_table',

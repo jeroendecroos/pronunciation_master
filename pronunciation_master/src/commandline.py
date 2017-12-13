@@ -6,6 +6,7 @@ import argparse
 import logging
 
 import resources
+import mongodb
 
 logging.basicConfig()
 
@@ -25,6 +26,17 @@ class ArgumentParser(argparse.ArgumentParser):
         self.add_argument(
             '--word', dest='word', required=True,
             help='the word we want the pdata for')
+
+    def add_local(self):
+        class MongoDBAction(argparse.Action):
+            def __call__(self, parser, namespace, values, option_string):
+                db = mongodb.default_local_db(values) if values else None
+                setattr(namespace, self.dest, db)
+        self.add_argument(
+            '--local', dest='local', required=False,
+            default='pronunciation_master',
+            action=MongoDBAction,
+            help='the local mongodb')
 
     def add_maximum_words_to_try(self):
         self.add_argument(
