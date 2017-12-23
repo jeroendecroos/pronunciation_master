@@ -11,10 +11,9 @@ pip install -U pip setuptools
 pip install -r requirements.txt
 
 
-install postgresql
-
-following is to test with lettuce a test postgresql installation would be better.
-But working in a virtualbox that is set up quikly and independent from production is good enough for the moment
-CREATE USER tester with pass 'XXXXXX'
-ALTER ROLE tester with CREATEDB
+Following is to test with lettuce:
+sudo apt-get install mongodb 
+sudo apt-get install postgresql
+sudo -u postgres psql -c "CREATE USER tester with pass 'XXXXXX'"
+sudo -u postgres psql -c "ALTER ROLE tester with CREATEDB LOGIN"
 
