@@ -1,4 +1,5 @@
 import itertools
+import os
 import json
 import sqlalchemy
 import sqlalchemy_utils
@@ -7,6 +8,8 @@ from psycopg2 import errorcodes as psycopg2_errorcodes
 # Note: This whole module should be changed to use the sqlaclchemy ORM
 
 def _load_json(filepath):
+    if not os.path.exists(filepath):
+        raise IOError('{} doesnt exists'.format(filepath))
     with open(filepath) as json_data_file:
         return json.load(json_data_file)
 
