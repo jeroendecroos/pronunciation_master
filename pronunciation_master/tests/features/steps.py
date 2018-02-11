@@ -243,7 +243,7 @@ def ask_to_create_an_empty_database(_, database_name):
         ['db_config'],
         positional_arguments=[
             'which_table',
-            ]
+            ],
         )
 
 

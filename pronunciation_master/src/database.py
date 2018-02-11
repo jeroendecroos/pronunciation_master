@@ -8,9 +8,6 @@ from psycopg2 import errorcodes as psycopg2_errorcodes
 # Note: This whole module should be changed to use the sqlaclchemy ORM
 
 def _load_json(filepath):
-    if not filepath:
-        import sys
-        raise Exception(sys.argv)
     if not os.path.exists(filepath):
         raise IOError('{} doesnt exists'.format(filepath))
     with open(filepath) as json_data_file:

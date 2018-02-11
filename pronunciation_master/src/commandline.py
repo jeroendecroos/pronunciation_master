@@ -72,6 +72,8 @@ class ArgumentParser(argparse.ArgumentParser):
         for name, arguments in data_getter_options.iteritems():
             parser = subparsers.add_parser(name)
             for argument, default in arguments.iteritems():
+                if argument == 'db_config':
+                    continue
                 parser.add_argument(
                     '--'+argument,
                     required=False,
@@ -132,16 +134,19 @@ class LanguageAndDatabaseOutput(CommonArguments):
     def parse_arguments(
             cls,
             description,
-            data_getter_options={},
+            data_getter_options=None,
             argv=None,
             extra_arguments=tuple(),
             ):
-        cls.data_getter_options = data_getter_options
-        return super(LanguageAndDatabaseOutput, cls).parse_arguments(
+        cls.data_getter_options = data_getter_options or {}
+        args = super(LanguageAndDatabaseOutput, cls).parse_arguments(
             description,
             argv=argv,
             extra_arguments=extra_arguments,
             )
+	if not args.db_config:
+            raise Exception(sys.argv)
+        return args
 
     @classmethod
     def _add_arguments(cls, parser):
