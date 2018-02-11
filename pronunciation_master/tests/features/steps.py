@@ -170,9 +170,11 @@ def when_i_ask_for_to_process_into_mongodb(step):
 def i_have_an_empty_mongodb(step):
     client = MongoClient()
     db = client.pronunciation_master_test
+    #import pdb; pdb.set_trace()
     db.wiktionary_raw.drop()
     db.wiktionary_raw_subdivided.drop()
     db.wiktionary_ipa.drop()
+    client.drop_database('pronunciation_master_test')
 
 
 @step(u'When I ask to find in the mongodb')
@@ -256,11 +258,11 @@ def when_i_ask_to_store_its_data(_, which_table):
         arguments=[
             'db_config',
             'language',
-            'local',
             ],
         positional_arguments=[
             'which_table',
-            ]
+            ],
+	sub_arguments=['local'],
         )
 
 
@@ -276,12 +278,11 @@ def when_i_ask_to_store_its_data_with_parameters(_, which_table, parameters):
         arguments=[
             'db_config',
             'language',
-            'local',
             ],
         positional_arguments=[
             'which_table',
             ],
-        sub_arguments=sub_arguments,
+        sub_arguments=['local']+sub_arguments.keys(),
         )
 
 

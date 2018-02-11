@@ -10,7 +10,7 @@ import commandline
 import mongodb
 
 
-def get_pronunciations(language, word, local=mongodb.default_local_db()):
+def get_pronunciations(language, word, local='pronunciation_master'):
     """ main function of module,
     gets the pronunciations for a 'word' in a 'language'
     dependency on Wiktionary (get_wiktionary_entry) to get this
@@ -23,6 +23,7 @@ def get_pronunciations(language, word, local=mongodb.default_local_db()):
     """
     language_code = language_codes.Wiktionary.map(language)
     if local:
+        local = mongodb.default_local_db(local)
         pronunciations = _get_local_wiktionary_entry(language, word, local)
     else:
         wiktionary_entry = get_wiktionary_entry(language_code, word)

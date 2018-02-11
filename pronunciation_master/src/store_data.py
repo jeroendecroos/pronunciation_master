@@ -23,6 +23,5 @@ if __name__ == '__main__':
     args = commandline.LanguageAndDatabaseOutput.parse_arguments(
         description,
         options, 
-        extra_arguments=['local'],
         )
     _store_data(args)
