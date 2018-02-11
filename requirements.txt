@@ -59,6 +59,7 @@ zope.interface==4.3.3
 sqlalchemy
 testing.postgresql
 psycopg2
+psycopg2-binary
 sqlalchemy_utils
 pymongo==3.5.1
 mongomock==3.8.0
