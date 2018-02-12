@@ -86,10 +86,14 @@ class GetPronunciationsTest(testcase.BaseTestCase):
         ret = self.fun('dutch', 'bad', local=False)
         self.assertItemsEqual(ret, ['ba'])
 
-    def test_one_pronoun_local_wiktionary(self):
-        get_pronunciations.MongoClient = MongoClient
-        client = get_pronunciations.MongoClient()
-        db = getattr(client, 'pronunciation_master')
+    @mock.patch(
+        'pronunciation_master.src.get_pronunciations.mongodb.default_local_db'
+        )
+    def test_one_pronoun_local_wiktionary(self, mongo_db):
+        client = MongoClient()
+        db_name = 'pronunciation_master'
+        db = getattr(client, db_name)
+        mongo_db.return_value = db
         collection = db.wiktionary_ipa
         collection.insert_one({
             'language': 'Dutch',
@@ -97,13 +101,12 @@ class GetPronunciationsTest(testcase.BaseTestCase):
             'IPA': ['phoneme'],
             })
         self.assertEqual(
-            self.fun('dutch', 'bad', local=db),
+            self.fun('dutch', 'bad', local=db_name),
             ['phoneme'])
 
     def test_local_wiktionary_no_entry(self):
         get_pronunciations.MongoClient = MongoClient
-        client = get_pronunciations.MongoClient()
-        db = getattr(client, 'pronunciation_master')
+        db = 'pronunciation_master'
         self.assertEqual(
             self.fun('dutch', 'bad', local=db),
             None)

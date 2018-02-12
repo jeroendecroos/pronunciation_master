@@ -22,6 +22,6 @@ if __name__ == '__main__':
     options = data_generators.RowGenerators.get_all_options()
     args = commandline.LanguageAndDatabaseOutput.parse_arguments(
         description,
-        options, 
+        options,
         )
     _store_data(args)

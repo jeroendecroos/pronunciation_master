@@ -35,7 +35,6 @@ class ArgumentParser(argparse.ArgumentParser):
         self.add_argument(
             '--local', dest='local', required=False,
             default='pronunciation_master',
-            action=MongoDBAction,
             help='the local mongodb')
 
     def add_maximum_words_to_try(self):
@@ -144,7 +143,7 @@ class LanguageAndDatabaseOutput(CommonArguments):
             argv=argv,
             extra_arguments=extra_arguments,
             )
-	if not args.db_config:
+        if not args.db_config:
             raise Exception(sys.argv)
         return args
 

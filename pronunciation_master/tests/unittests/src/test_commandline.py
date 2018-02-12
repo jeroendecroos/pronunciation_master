@@ -4,7 +4,6 @@ from nose2.tools import params
 
 from pronunciation_master.tests.testlib import testcase
 from pronunciation_master.src import commandline
-from pronunciation_master.src import mongodb
 
 
 class ArgumentParserTest(testcase.BaseTestCase):
@@ -14,7 +13,7 @@ class ArgumentParserTest(testcase.BaseTestCase):
 
     @params(
         ('language', 'd', 'd'),
-        ('local', 'something', mongodb.default_local_db('something')),
+        ('local', 'something', 'something'),
         ('word', 'd', 'd'),
         ('maximum_words_to_try', '1', 1),
         ('minimum_examples', '1', 1),

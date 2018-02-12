@@ -18,18 +18,36 @@ Feature: Store the different data into a database
         Then I see the approximate error message "database '.*pronunciation_master_test' already exists"
 
 
-    Scenario: Bad language
+    Scenario: Bad language phonemes
         Given I have the language "unknown"
         Given there is not the database 'pronunciation_master_test'
         When I ask to create an empty database "pronunciation_master_test"
-        When I ask to store the "<which_table>"
+        When I ask to store the "phonemes"
         Then I see the error message "Language 'unknown' is not known"
-        Examples:
-        | which_table      |
-        | phonemes         |
-        | word_frequencies |
-        | pronunciations   |
-        | pronunciation_examples   |
+
+
+    Scenario: Bad language word_frequencies
+        Given I have the language "unknown"
+        Given there is not the database 'pronunciation_master_test'
+        When I ask to create an empty database "pronunciation_master_test"
+        When I ask to store the "word_frequencies"
+        Then I see the error message "Language 'unknown' is not known"
+
+
+    Scenario: Bad language pronunciations
+        Given I have the language "unknown"
+        Given there is not the database 'pronunciation_master_test'
+        When I ask to create an empty database "pronunciation_master_test"
+        When I ask to store the "pronunciations"
+        Then I see the error message "Language 'unknown' is not known"
+
+
+    Scenario: Bad language pronunciation_examples
+        Given I have the language "unknown"
+        Given there is not the database 'pronunciation_master_test'
+        When I ask to create an empty database "pronunciation_master_test"
+        When I ask to store the "pronunciation_examples"
+        Then I see the error message "Language 'unknown' is not known"
 
 
     Scenario: Store phonemes
@@ -43,7 +61,6 @@ Feature: Store the different data into a database
         | k              |
 
 
-    @new
     Scenario: Store only once
         Given I have the language "dutch"
         Given there is not the database 'pronunciation_master_test'
@@ -97,7 +114,7 @@ Feature: Store the different data into a database
         Given there is not the database 'pronunciation_master_test'
         When I ask to create an empty database "pronunciation_master_test"
         When I ask to store the "phonemes" with "max_words=5"
-        Then I see the approximate error message "error: unrecognized arguments: --max_words 5"
+        Then I see the approximate error message "error: unrecognized arguments:.*--max_words 5"
 
 
     Scenario: Store frequencies
@@ -110,6 +127,7 @@ Feature: Store the different data into a database
         | ik   | 1           | 8106228        |
         | je   | 2           | 7305984        |
         | het  | 3           | 5706767        |
+
 
     Scenario: Store pronunciation_examples
         Given there is not the database 'pronunciation_master_test'
